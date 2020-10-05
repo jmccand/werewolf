@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>ONUW TABLE</title>
+<style>
+body {
+	background-image : url('Table.jpg');
+}
+</style>
+</head>
+<body>
+<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
+</div>
+
+<script>
+var total_player_number = 24;
+var angle;
+var x;
+var y;
+var image;
+for(player = 0; player < total_player_number; player++) {
+	angle = (360.0 / total_player_number) * player - 90;
+	y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 300;
+	x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 300;
+	
+	image = document.createElement('img');
+	image.src = 'Card Backside.jpg';
+	image.width = '71';
+	image.height = '100';
+	image.style.transform = 'rotate(' + (-(180 + angle + 90)) + 'deg)';
+	image.style.position = 'fixed';
+	image.style.left = 700 + x - 35;
+	image.style.top = 360 - y - 50;
+	document.body.appendChild(image);
+}
+</script>
+
+</body>
+</html>

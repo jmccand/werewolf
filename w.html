@@ -1,0 +1,103 @@
+<html>
+<head>
+<title> ONUW </title>
+<style>
+div.fixed {
+	position : fixed;
+	top : 40%;
+	left : 38;
+	width : 200px;
+	height : 100px;
+	border: 3px solid #FFFFFF;
+	z-index : 1;
+}
+div.relative {
+	position : relative;
+	left : 110px;
+	width : 1091px;
+	height : 300px;
+	border : 0px solid #FFFFFF;
+	z-index : 0;
+}
+</style>
+</head>
+<body bgcolor = '#000033' align = 'center'>
+<div class = 'fixed' align = 'center'>
+<font id = 'total_role_number'color = '#FFFFFF' size = '32'>
+0
+</font>
+<br />
+<font color = '#FFFFFF' size = '6'>
+roles selected
+</font>
+</div>
+
+<h2>
+<button type = 'button' style = 'position : fixed; top : 55%; left : 50; z-index : 1'>
+<font size = '6'>
+Start Game
+</font>
+</button>
+</h2>
+
+<div class = 'relative' style = 'display : inline-block'>
+<h1>
+<font color = '#FFFFFF'> One Night Ultimate Werewolf </font>
+</h1>
+<img src = 'sentinel.jpg' width = '215px' height = '300px' style = 'border : 0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'doppleganger.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'alpha wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<br />
+<img src = 'mystic wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'minion.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'seer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<br />
+<img src = 'apprentice seer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'paranormal investigator.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'robber.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'witch.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'troublemaker.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<br />
+<img src = 'village idiot.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'drunk.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'insomniac.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'revealer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'curator.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<br />
+<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'hunter.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'tanner.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<br />
+<img src = 'dream wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'bodyguard.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+</div>
+
+<script>
+
+var total_role_number = 0;
+
+function selectCard(element) {
+	if (element.style.border == '6px solid white') {
+		element.style.border = '0px solid white';	
+		element.width = '215';
+		element.height = '300';
+		total_role_number--;
+	}
+	else {
+		element.style.border = '6px solid white';
+		element.width = '203';
+		element.height = '288';
+		total_role_number++;
+	}
+	document.getElementById('total_role_number').innerHTML = total_role_number;
+}
+
+</script>
+</body>
+</html>
