@@ -405,12 +405,25 @@ function selectCard(element) {
                 var updatedRoles = response['roles']
                 if (response['mode'] == 'pick_roles') {
                     console.log('updated roles: ' + updatedRoles);
-                    for (var index=0; index<updatedRoles.length; index++) {
+                    for (var index = 0; index < total_roles_selected.length; index++) {
+                        var role = updatedRoles[index];
+                        if (updatedRoles.indexOf(role) == -1) {
+                            var element = document.getElementById(role);
+	                    element.style.border = '0px solid white';	
+               		    element.width = '215';
+ 		            element.height = '300';
+	                    total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
+                        }
+                    }
+                    for (var index = 0; index < updatedRoles.length; index++) {
                         var role = updatedRoles[index];
                         if (total_roles_selected.indexOf(role) != -1) {
                             var element = document.getElementById(role);
-                            selectCard(element);
+		            element.style.border = '6px solid white';
+		            element.width = '203';
+	                    element.height = '288';
                         }
+                        total_roles_selected = updatedRoles;
                     }
                 }
             }
