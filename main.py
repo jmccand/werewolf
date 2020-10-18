@@ -317,7 +317,7 @@ div.fixed {
 	height : 100px;
 	border: 3px solid #FFFFFF;
 	z-index : 1;
-`}
+}
 div.relative {
 	position : relative;
 	left : 110px;
