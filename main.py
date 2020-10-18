@@ -105,21 +105,21 @@ class MyHandler(SimpleHTTPRequestHandler):
 <head>
 <style>
 div.fixed {
-	position : fixed;
-	top : 40%;
-	left : 38;
-	width : 200px;
-	height : 100px;
-	border: 3px solid #FFFFFF;
-	z-index : 1;
+        position : fixed;
+        top : 40%;
+        left : 38;
+        width : 200px;
+        height : 100px;
+        border: 3px solid #FFFFFF;
+        z-index : 1;
 `}
 div.relative {
-	position : relative;
-	left : 110px;
-	width : 1091px;
-	height : 300px;
-	border : 0px solid #FFFFFF;
-	z-index : 0;
+        position : relative;
+        left : 110px;
+        width : 1091px;
+        height : 300px;
+        border : 0px solid #FFFFFF;
+        z-index : 0;
 }
 </style>
 </head>
@@ -184,20 +184,20 @@ Start Game
 var total_roles_selected = [];
 
 function selectCard(element) {
-	if (element.style.border == '6px solid white') {
-		element.style.border = '0px solid white';	
-		element.width = '215';
-		element.height = '300';
-		total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
-	}
-	else {
-		element.style.border = '6px solid white';
-		element.width = '203';
-		element.height = '288';
-		total_roles_selected.push(element.id);
-	}
+        if (element.style.border == '6px solid white') {
+                element.style.border = '0px solid white';        
+                element.width = '215';
+                element.height = '300';
+                total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
+        }
+        else {
+                element.style.border = '6px solid white';
+                element.width = '203';
+                element.height = '288';
+                total_roles_selected.push(element.id);
+        }
         updateRoles(total_roles_selected)
-	document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+        document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
 }
 function updateRoles(roleList) {
         var xhttp = new XMLHttpRequest();
@@ -299,7 +299,10 @@ function updateRoles(roleList) {
         print('path = ' + self.path)
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
         print(arguments)
-        MyHandler.role_list = arguments['roles'][0].split(",")
+        if arguments['roles'] == ['']:
+            MyHandler.role_list = []
+        else:
+            MyHandler.role_list = arguments['roles'][0].split(",")
         print(MyHandler.role_list)
 
     def view_roles(self):
@@ -310,21 +313,21 @@ function updateRoles(roleList) {
 <head>
 <style>
 div.fixed {
-	position : fixed;
-	top : 40%;
-	left : 38;
-	width : 200px;
-	height : 100px;
-	border: 3px solid #FFFFFF;
-	z-index : 1;
+        position : fixed;
+        top : 40%;
+        left : 38;
+        width : 200px;
+        height : 100px;
+        border: 3px solid #FFFFFF;
+        z-index : 1;
 }
 div.relative {
-	position : relative;
-	left : 110px;
-	width : 1091px;
-	height : 300px;
-	border : 0px solid #FFFFFF;
-	z-index : 0;
+        position : relative;
+        left : 110px;
+        width : 1091px;
+        height : 300px;
+        border : 0px solid #FFFFFF;
+        z-index : 0;
 }
 </style>
 </head>
@@ -379,43 +382,42 @@ roles selected
 
 var total_roles_selected = [];
 
-    function refreshPage() {
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "/game_state", true);
-        xhttp.send();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                var response = JSON.parse(this.responseText);
-                var updatedRoles = response['roles']
-                if (response['mode'] == 'pick_roles') {
-                    console.log('updated roles: ' + updatedRoles);
-                    for (var index = 0; index < total_roles_selected.length; index++) {
-                        var role = updatedRoles[index];
-                        if (updatedRoles.indexOf(role) == -1) {
-                            var element = document.getElementById(role);
-	                    element.style.border = '0px solid white';	
-               		    element.width = '215';
- 		            element.height = '300';
-	                    total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
-                        }
-                    }
-                    for (var index = 0; index < updatedRoles.length; index++) {
-                        var role = updatedRoles[index];
-                        if (total_roles_selected.indexOf(role) != -1) {
-                            var element = document.getElementById(role);
-		            element.style.border = '6px solid white';
-		            element.width = '203';
-	                    element.height = '288';
-                        }
-                        total_roles_selected = updatedRoles;
-                        document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+function refreshPage() {
+    console.log('start');
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/game_state", true);
+    xhttp.send();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var response = JSON.parse(this.responseText);
+            var updatedRoles = response['roles']
+            if (response['mode'] == 'pick_roles') {
+                console.log('updated roles: ' + updatedRoles);
+                for (var index = 0; index < total_roles_selected.length; index++) {
+                    var role = total_roles_selected[index];
+                    if (updatedRoles.indexOf(role) == -1) {
+                        var element = document.getElementById(role);
+                        element.style.border = '0px solid white';
+                        element.width = '215';
+                        element.height = '300';
                     }
                 }
+                for (var index = 0; index < updatedRoles.length; index++) {
+                    var role = updatedRoles[index];
+                    var element = document.getElementById(role);
+                    element.style.border = '6px solid white';
+                    element.width = '203';
+                    element.height = '288';
+                }
+                total_roles_selected = updatedRoles;
+                document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+                console.log('end');
             }
         }
-        setTimeout(refreshPage, 1000);
     }
     setTimeout(refreshPage, 1000);
+}
+setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
