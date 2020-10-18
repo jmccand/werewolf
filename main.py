@@ -330,7 +330,7 @@ div.relative {
 </head>
 <body bgcolor = '#000033' align = 'center'>
 <div class = 'fixed' align = 'center'>
-<font id = 'total_role_number'color = '#FFFFFF' size = '32'>
+<font id = 'total_role_number' color = '#FFFFFF' size = '32'>
 0
 </font>
 <br />
@@ -379,22 +379,6 @@ roles selected
 
 var total_roles_selected = [];
 
-function selectCard(element) {
-	if (element.style.border == '6px solid white') {
-		element.style.border = '0px solid white';	
-		element.width = '215';
-		element.height = '300';
-		total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
-	}
-	else {
-		element.style.border = '6px solid white';
-		element.width = '203';
-		element.height = '288';
-		total_roles_selected.push(element.id);
-	}
- 	document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
-}
-
     function refreshPage() {
         var xhttp = new XMLHttpRequest();
         xhttp.open("GET", "/game_state", true);
@@ -424,6 +408,7 @@ function selectCard(element) {
 	                    element.height = '288';
                         }
                         total_roles_selected = updatedRoles;
+                        document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
                     }
                 }
             }
