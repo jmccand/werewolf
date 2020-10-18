@@ -148,14 +148,14 @@ Start Game
 </h1>
 <img src = 'sentinel.jpg' id = 'sentinel' width = '215px' height = '300px' style = 'border : 0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'doppleganger.jpg' id = 'doppleganger' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' id = 'werewolf1' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' id = 'werewolf2' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'alpha wolf.jpg' id = 'alpha wolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
 <img src = 'mystic wolf.jpg' id = 'mystic wolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'minion.jpg' id = 'minion' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' id = 'mason1' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' id = 'mason2' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'seer.jpg' id = 'seer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
 <img src = 'apprentice seer.jpg' id = 'apprentice seer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
@@ -170,9 +170,9 @@ Start Game
 <img src = 'revealer.jpg' id = 'revealer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'curator.jpg' id = 'curator' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager1' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager2' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager3' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'hunter.jpg' id = 'hunter' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <img src = 'tanner.jpg' id = 'tanner' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
@@ -344,14 +344,14 @@ roles selected
 </h1>
 <img src = 'sentinel.jpg' id = 'sentinel' width = '215px' height = '300px' style = 'border : 0px solid white'/>
 <img src = 'doppleganger.jpg' id = 'doppleganger' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'werewolf.jpg' id = 'werewolf1' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'werewolf.jpg' id = 'werewolf2' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'alpha wolf.jpg' id = 'alpha wolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <br />
 <img src = 'mystic wolf.jpg' id = 'mystic wolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'minion.jpg' id = 'minion' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'mason.jpg' id = 'mason1' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'mason.jpg' id = 'mason2' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'seer.jpg' id = 'seer' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <br />
 <img src = 'apprentice seer.jpg' id = 'apprentice seer' width = '215px' height = '300px' style = 'border:0px solid white'/>
@@ -366,9 +366,9 @@ roles selected
 <img src = 'revealer.jpg' id = 'revealer' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'curator.jpg' id = 'curator' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <br />
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
-<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'villager.jpg' id = 'villager1' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'villager.jpg' id = 'villager2' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'villager.jpg' id = 'villager3' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'hunter.jpg' id = 'hunter' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <img src = 'tanner.jpg' id = 'tanner' width = '215px' height = '300px' style = 'border:0px solid white'/>
 <br />
