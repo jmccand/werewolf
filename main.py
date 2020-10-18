@@ -13,6 +13,7 @@ class MyHandler(SimpleHTTPRequestHandler):
     player_usernames = set()
     first_user = None
     game_mode = 'waiting_room'
+    role_list = []
 
     def do_GET(self):
 
@@ -39,13 +40,17 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.waiting_room()
             elif self.path.startswith('/set_username'):
                 return self.set_username()
-            elif self.path == '/set_roles':
+            elif self.path.startswith('/set_roles'):
                 return self.set_roles()
+            elif self.path == '/view_roles':
+                return self.view_roles()
 
     def set_username(self):
+        print('set username')
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         if 'username' in arguments:
             username = arguments['username'][0]
+            print(username)
         else:
             username = None
         if 'username' not in arguments or username in MyHandler.player_usernames:
@@ -66,7 +71,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         else:
             self.send_response(302)
             self.send_header('Set-Cookie', 'username=%s; domain=werewolf.joelmccandless.com' % username)
-            self.send_header('Location', '/waiting_room')
+            self.send_header('Location', '/')
             self.end_headers()
 
     def change_username(self):
@@ -84,10 +89,15 @@ class MyHandler(SimpleHTTPRequestHandler):
     def get_gamestate(self):
         self.send_response(200)
         self.end_headers()
-        game_state = {'mode': 'waiting_room', 'players': list(MyHandler.player_usernames)}
+        if MyHandler.game_mode == 'waiting_room':
+            game_state = {'mode': 'waiting_room', 'players': list(MyHandler.player_usernames)}
+        elif MyHandler.game_mode == 'pick_roles':
+            game_state = {'mode': 'pick_roles', 'roles': MyHandler.role_list}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
+        MyHandler.game_mode = 'pick_roles'
+        print('GAME MODE SWITCHED TO PICK ROLES')
         self.send_response(200)
         self.end_headers()
         self.wfile.write('''
@@ -136,40 +146,39 @@ Start Game
 <h1>
 <font color = '#FFFFFF'> One Night Ultimate Werewolf </font>
 </h1>
-<img src = 'sentinel.jpg' width = '215px' height = '300px' style = 'border : 0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'doppleganger.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'werewolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'werewolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'alpha wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'sentinel.jpg' id = 'sentinel' width = '215px' height = '300px' style = 'border : 0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'doppleganger.jpg' id = 'doppleganger' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'alpha wolf.jpg' id = 'alpha wolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'mystic wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'minion.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'mason.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'mason.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'seer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mystic wolf.jpg' id = 'mystic wolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'minion.jpg' id = 'minion' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'seer.jpg' id = 'seer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'apprentice seer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'paranormal investigator.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'robber.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'witch.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'troublemaker.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'apprentice seer.jpg' id = 'apprentice seer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'paranormal investigator.jpg' id = 'paranormal investigator' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'robber.jpg' id = 'robber' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'witch.jpg' id = 'witch' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'troublemaker.jpg' id = 'troublemaker' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'village idiot.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'drunk.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'insomniac.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'revealer.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'curator.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'village idiot.jpg' id = 'village idiot' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'drunk.jpg' id = 'drunk' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'insomniac.jpg' id = 'insomniac' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'revealer.jpg' id = 'revealer' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'curator.jpg' id = 'curator' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'villager.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'hunter.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'tanner.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'hunter.jpg' id = 'hunter' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'tanner.jpg' id = 'tanner' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 <br />
-<img src = 'dream wolf.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
-<img src = 'bodyguard.jpg' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'dream wolf.jpg' id = 'dream wolf' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
+<img src = 'bodyguard.jpg' id = 'bodyguard' width = '215px' height = '300px' style = 'border:0px solid white' onclick = 'selectCard(this)'/>
 </div>
-
 <script>
 
 var total_roles_selected = [];
@@ -179,17 +188,22 @@ function selectCard(element) {
 		element.style.border = '0px solid white';	
 		element.width = '215';
 		element.height = '300';
-		total_roles_selected.splice(total_roles_selected.indexOf(element.src), 1);
+		total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
 	}
 	else {
 		element.style.border = '6px solid white';
 		element.width = '203';
 		element.height = '288';
-		total_roles_selected.push(element.src);
+		total_roles_selected.push(element.id);
 	}
-	document.getElementById('total_role_number').innerHTML = total_role_number;
+        updateRoles(total_roles_selected)
+	document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
 }
-
+function updateRoles(roleList) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/set_roles?roles=" + roleList.join(), true);
+        xhttp.send();
+}
 </script>
 </body>
 </html>
@@ -199,6 +213,7 @@ function selectCard(element) {
         return SimpleHTTPRequestHandler.do_GET(self)
 
     def handleHomepage(self):
+        print('handleHomepage')
         cookies = SimpleCookie(self.headers.get('Cookie'))
         self.send_response(302)
         if 'username' not in cookies:
@@ -256,6 +271,9 @@ function selectCard(element) {
                         player_list.appendChild(player);
                     }
                 }
+                else if (response['mode'] == 'pick_roles') {
+                    document.location.href = '/view_roles'
+                }
                 console.log('updatedPlayerList: ' + this.responseText);
             }
         };
@@ -275,7 +293,135 @@ function selectCard(element) {
             self.wfile.write('''
     </body>
     </html>
-    '''.encode('utf8')) 
+    '''.encode('utf8'))
+
+    def set_roles(self):
+        print('path = ' + self.path)
+        arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
+        print(arguments)
+        MyHandler.role_list = arguments['roles'][0].split(",")
+        print(MyHandler.role_list)
+
+    def view_roles(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write('''
+<html>
+<head>
+<style>
+div.fixed {
+	position : fixed;
+	top : 40%;
+	left : 38;
+	width : 200px;
+	height : 100px;
+	border: 3px solid #FFFFFF;
+	z-index : 1;
+`}
+div.relative {
+	position : relative;
+	left : 110px;
+	width : 1091px;
+	height : 300px;
+	border : 0px solid #FFFFFF;
+	z-index : 0;
+}
+</style>
+</head>
+<body bgcolor = '#000033' align = 'center'>
+<div class = 'fixed' align = 'center'>
+<font id = 'total_role_number'color = '#FFFFFF' size = '32'>
+0
+</font>
+<br />
+<font color = '#FFFFFF' size = '6'>
+roles selected
+</font>
+</div>
+<div class = 'relative' style = 'display : inline-block'>
+<h1>
+<font color = '#FFFFFF'> One Night Ultimate Werewolf </font>
+</h1>
+<img src = 'sentinel.jpg' id = 'sentinel' width = '215px' height = '300px' style = 'border : 0px solid white'/>
+<img src = 'doppleganger.jpg' id = 'doppleganger' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'werewolf.jpg' id = 'werewolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'alpha wolf.jpg' id = 'alpha wolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<br />
+<img src = 'mystic wolf.jpg' id = 'mystic wolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'minion.jpg' id = 'minion' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'mason.jpg' id = 'mason' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'seer.jpg' id = 'seer' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<br />
+<img src = 'apprentice seer.jpg' id = 'apprentice seer' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'paranormal investigator.jpg' id = 'paranormal investigator' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'robber.jpg' id = 'robber' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'witch.jpg' id = 'witch' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'troublemaker.jpg' id = 'troublemaker' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<br />
+<img src = 'village idiot.jpg' id = 'village idiot' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'drunk.jpg' id = 'drunk' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'insomniac.jpg' id = 'insomniac' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'revealer.jpg' id = 'revealer' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'curator.jpg' id = 'curator' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<br />
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'villager.jpg' id = 'villager' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'hunter.jpg' id = 'hunter' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'tanner.jpg' id = 'tanner' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<br />
+<img src = 'dream wolf.jpg' id = 'dream wolf' width = '215px' height = '300px' style = 'border:0px solid white'/>
+<img src = 'bodyguard.jpg' id = 'bodyguard' width = '215px' height = '300px' style = 'border:0px solid white'/>
+</div>
+<script>
+
+var total_roles_selected = [];
+
+function selectCard(element) {
+	if (element.style.border == '6px solid white') {
+		element.style.border = '0px solid white';	
+		element.width = '215';
+		element.height = '300';
+		total_roles_selected.splice(total_roles_selected.indexOf(element.id), 1);
+	}
+	else {
+		element.style.border = '6px solid white';
+		element.width = '203';
+		element.height = '288';
+		total_roles_selected.push(element.id);
+	}
+ 	document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+}
+
+    function refreshPage() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/game_state", true);
+        xhttp.send();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var response = JSON.parse(this.responseText);
+                var updatedRoles = response['roles']
+                if (response['mode'] == 'pick_roles') {
+                    console.log('updated roles: ' + updatedRoles);
+                    for (var index=0; index<updatedRoles.length; index++) {
+                        var role = updatedRoles[index];
+                        if (total_roles_selected.indexOf(role) != -1) {
+                            var element = document.getElementById(role);
+                            selectCard(element);
+                        }
+                    }
+                }
+            }
+        }
+        setTimeout(refreshPage, 1000);
+    }
+    setTimeout(refreshPage, 1000);
+</script>
+</body>
+</html>
+'''.encode('utf8'))
                         
 class ReuseHTTPServer(HTTPServer):
     
