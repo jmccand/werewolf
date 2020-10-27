@@ -44,6 +44,8 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.set_roles()
             elif self.path == '/view_roles':
                 return self.view_roles()
+            elif self.path == '/show_cards':
+                return self.show_cards()
 
     def set_username(self):
         print('set username')
@@ -100,13 +102,13 @@ class MyHandler(SimpleHTTPRequestHandler):
         print('GAME MODE SWITCHED TO PICK ROLES')
         self.send_response(200)
         self.end_headers()
-        self.wfile.write('''
+        self.wfile.write(str('''
 <html>
 <head>
 <style>
 div.fixed {
         position : fixed;
-        top : 40%;
+        top : 40%%;
         left : 38;
         width : 200px;
         height : 100px;
@@ -125,8 +127,8 @@ div.relative {
 </head>
 <body bgcolor = '#000033' align = 'center'>
 <div class = 'fixed' align = 'center'>
-<font id = 'total_role_number'color = '#FFFFFF' size = '32'>
-0
+<font id = 'total_role_number' color = '#FFFFFF' size = '32'>
+0 / %s
 </font>
 <br />
 <font color = '#FFFFFF' size = '6'>
@@ -135,7 +137,7 @@ roles selected
 </div>
 
 <h2>
-<button type = 'button' style = 'position : fixed; top : 55%; left : 50; z-index : 1'>
+<button id='start_game' type = 'button' style = 'position : fixed; top : 55%%; left : 50; z-index : 1' disabled='true'>
 <font size = '6'>
 Start Game
 </font>
@@ -182,6 +184,7 @@ Start Game
 <script>
 
 var total_roles_selected = [];
+var number_of_players = %s;
 
 function selectCard(element) {
         if (element.style.border == '6px solid white') {
@@ -196,8 +199,14 @@ function selectCard(element) {
                 element.height = '288';
                 total_roles_selected.push(element.id);
         }
-        updateRoles(total_roles_selected)
-        document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+        updateRoles(total_roles_selected);
+        document.getElementById('total_role_number').innerHTML = total_roles_selected.length + ' / ' + number_of_players;
+        if (total_roles_selected.length == number_of_players) {
+                document.getElementById('start_game').disabled = false;
+        }
+        else {
+                document.getElementById('start_game').disabled = true;
+        }
 }
 function updateRoles(roleList) {
         var xhttp = new XMLHttpRequest();
@@ -207,7 +216,7 @@ function updateRoles(roleList) {
 </script>
 </body>
 </html>
-'''.encode('utf8'))
+''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
 
     def load_image(self):
         return SimpleHTTPRequestHandler.do_GET(self)
@@ -308,13 +317,13 @@ function updateRoles(roleList) {
     def view_roles(self):
         self.send_response(200)
         self.end_headers()
-        self.wfile.write('''
+        self.wfile.write(str('''
 <html>
 <head>
 <style>
 div.fixed {
         position : fixed;
-        top : 40%;
+        top : 40%%;
         left : 38;
         width : 200px;
         height : 100px;
@@ -334,7 +343,7 @@ div.relative {
 <body bgcolor = '#000033' align = 'center'>
 <div class = 'fixed' align = 'center'>
 <font id = 'total_role_number' color = '#FFFFFF' size = '32'>
-0
+0 / %s
 </font>
 <br />
 <font color = '#FFFFFF' size = '6'>
@@ -381,6 +390,7 @@ roles selected
 <script>
 
 var total_roles_selected = [];
+var number_of_players = %s;
 
 function refreshPage() {
     console.log('start');
@@ -410,7 +420,7 @@ function refreshPage() {
                     element.height = '288';
                 }
                 total_roles_selected = updatedRoles;
-                document.getElementById('total_role_number').innerHTML = total_roles_selected.length;
+                document.getElementById('total_role_number').innerHTML = total_roles_selected.length + ' / ' + number_of_players;
                 console.log('end');
             }
         }
@@ -421,7 +431,7 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-'''.encode('utf8'))
+''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
                         
 class ReuseHTTPServer(HTTPServer):
     
