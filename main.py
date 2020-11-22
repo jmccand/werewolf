@@ -14,9 +14,14 @@ class MyHandler(SimpleHTTPRequestHandler):
     first_user = None
     game_mode = 'waiting_room'
     role_list = []
+    position_username_role = []
 
     def do_GET(self):
+        print('\npath = ' + self.path)
+        print('top of do get: ' + str(MyHandler.role_list))
 
+        cookies = SimpleCookie(self.headers.get('Cookie'))
+        
         host = self.headers.get('Host')
         print(host)
         if host != 'werewolf.joelmccandless.com:8000':
@@ -28,25 +33,36 @@ class MyHandler(SimpleHTTPRequestHandler):
         else:
             if self.path == '/change_username':
                 return self.change_username()
-            elif self.path == '/game_state':
-                return self.get_gamestate()
-            elif self.path == '/pick_roles':
-                return self.pick_roles()
-            elif self.path.endswith('.jpg'):
-                return self.load_image()
-            elif self.path == '/':
-                return self.handleHomepage()
-            elif self.path == '/waiting_room':
-                return self.waiting_room()
             elif self.path.startswith('/set_username'):
                 return self.set_username()
-            elif self.path.startswith('/set_roles'):
-                return self.set_roles()
-            elif self.path == '/view_roles':
-                return self.view_roles()
-            elif self.path == '/show_cards':
-                return self.show_cards()
-
+            elif 'username' not in cookies:
+                return self.set_username()
+            elif 'username' in cookies:
+                if self.path == '/':
+                    return self.handleHomepage()
+                elif self.path == '/waiting_room':
+                    return self.waiting_room()
+                elif self.path.endswith('.jpg'):
+                    return self.load_image()
+                elif len(MyHandler.player_usernames) == 0 or cookies['username'].value not in MyHandler.player_usernames:
+                    return self.waiting_room()
+                else:
+                    print('player usernames: ' + str(MyHandler.player_usernames))
+                    print('else of do get: ' + str(MyHandler.role_list))
+                    if self.path == '/game_state':
+                        return self.get_gamestate()
+                    elif self.path == '/pick_roles':
+                        return self.pick_roles()
+                    elif self.path.startswith('/set_roles'):
+                        return self.set_roles()
+                    elif self.path == '/view_roles':
+                        return self.view_roles()
+                    elif self.path == '/deal_cards':
+                        print('right before deal cards of do get: ' + str(MyHandler.role_list))
+                        return self.deal_cards()
+                    elif self.path == '/show_cards':
+                        return self.show_cards()
+                    
     def set_username(self):
         print('set username')
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
@@ -95,7 +111,10 @@ class MyHandler(SimpleHTTPRequestHandler):
             game_state = {'mode': 'waiting_room', 'players': list(MyHandler.player_usernames)}
         elif MyHandler.game_mode == 'pick_roles':
             game_state = {'mode': 'pick_roles', 'roles': MyHandler.role_list}
+        elif MyHandler.game_mode == 'show_cards':
+            game_state = {'mode': 'show_cards', 'roles': MyHandler.position_username_role}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
+        print('gamestate role list: ' + str(MyHandler.role_list))
 
     def pick_roles(self):
         MyHandler.game_mode = 'pick_roles'
@@ -137,7 +156,7 @@ roles selected
 </div>
 
 <h2>
-<button id='start_game' type = 'button' style = 'position : fixed; top : 55%%; left : 50; z-index : 1' disabled='true'>
+<button id='start_game' onclick='document.location.href = "/deal_cards"' type = 'button' style = 'position : fixed; top : 55%%; left : 50; z-index : 1' disabled='true'>
 <font size = '6'>
 Start Game
 </font>
@@ -305,14 +324,13 @@ function updateRoles(roleList) {
     '''.encode('utf8'))
 
     def set_roles(self):
-        print('path = ' + self.path)
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
         print(arguments)
         if arguments['roles'] == ['']:
             MyHandler.role_list = []
         else:
             MyHandler.role_list = arguments['roles'][0].split(",")
-        print(MyHandler.role_list)
+        print('set roles role list: ' + str(MyHandler.role_list))
 
     def view_roles(self):
         self.send_response(200)
@@ -393,7 +411,6 @@ var total_roles_selected = [];
 var number_of_players = %s;
 
 function refreshPage() {
-    console.log('start');
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/game_state", true);
     xhttp.send();
@@ -421,7 +438,9 @@ function refreshPage() {
                 }
                 total_roles_selected = updatedRoles;
                 document.getElementById('total_role_number').innerHTML = total_roles_selected.length + ' / ' + number_of_players;
-                console.log('end');
+            }
+            else {
+                document.location.href = '/show_cards';
             }
         }
     }
@@ -432,6 +451,102 @@ setTimeout(refreshPage, 1000);
 </body>
 </html>
 ''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
+
+    def deal_cards(self):
+        if len(MyHandler.player_usernames) + 3 != len(MyHandler.role_list):
+            print('there was an error: incorrect number of roles')
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(f'''<html><body>I'm sorry, you must've pressed the start game too fast. The server sees {str(MyHandler.player_usernames)} as players and {str(MyHandler.role_list)} as roles.</body></html>'''.encode('utf8'))
+        else:
+            print('DEALING CARDS')
+            available_roles = MyHandler.role_list[:]
+            for player in MyHandler.player_usernames:
+                choice = random.choice(available_roles)
+                MyHandler.position_username_role.append([player, choice])
+                available_roles.remove(choice)
+            MyHandler.game_mode = 'show_cards'
+            self.send_response(302)
+            self.send_header('Location', '/show_cards')
+            self.end_headers()
+
+    def show_cards(self):
+        self.send_response(200)
+        self.end_headers()
+        cookies = SimpleCookie(self.headers.get('Cookie'))
+        username = cookies['username'].value
+        my_index = None
+        for player_role in MyHandler.position_username_role:
+            if player_role[0] == username:
+                my_index = MyHandler.position_username_role.index(player_role)
+        self.wfile.write(str('''
+<html>
+<head>
+<title>ONUW TABLE</title>
+<style>
+body {
+	background-image : url('Table.jpg');
+}
+</style>
+</head>
+<body>
+<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
+</div>
+
+<script>
+var firstRefresh = true;
+var player_role_list;
+var my_index = %s;
+function drawBoard(list, starting) {
+    var total_player_number = player_role_list.length;
+    var angle;
+    var x;
+    var y;
+    var image;
+    for (var player = 0; player < total_player_number; player++) {
+        angle = (360.0 / total_player_number) * player - 90;
+        y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 300;
+        x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 300;
+        image = document.createElement('img');
+        if (player == 0) {
+            image.src = player_role_list[my_index][1]
+        }
+        else {
+            image.src = 'Card Backside.jpg';
+        }
+        image.width = '71';
+        image.height = '100';
+        image.style.transform = 'rotate(' + (-(180 + angle + 90)) + 'deg)';
+        image.style.position = 'fixed';
+        image.style.left = 700 + x - 35;
+        image.style.top = 360 - y - 50;
+        document.body.appendChild(image);
+    }
+}
+
+function refreshPage() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/game_state", true);
+    xhttp.send();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var response = JSON.parse(this.responseText);
+            player_role_list = response['roles']
+            if (firstRefresh) {
+                drawBoard(player_role_list, my_index);
+                firstRefresh = false;
+            }
+        }
+    }
+    setTimeout(refreshPage, 1000);
+}
+setTimeout(refreshPage, 1000);
+
+</script>
+</body>
+</html>
+''' % (my_index)).encode('utf8'))
+            
                         
 class ReuseHTTPServer(HTTPServer):
     
