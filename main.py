@@ -1,5 +1,4 @@
 import random
-
 import urllib.parse
 import webbrowser
 import os
@@ -75,8 +74,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write('<html><body>'.encode('utf8'))
-            if username in MyHandler.player_usernames:
-                self.wfile.write(f'Sorry, the username "{username}" was already taken. Please choose another username.'.encode('utf8'))
+#            if username in MyHandler.player_usernames:
+#                self.wfile.write(f'Sorry, the username "{username}" was already taken. Please choose another username.'.encode('utf8'))
             self.wfile.write('''
     <form method = 'GET' action = '/set_username'>
     Please enter your username:
@@ -238,17 +237,49 @@ function updateRoles(roleList) {
 ''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
 
     def load_image(self):
+        if self.path.startswith('/werewolf'):
+            self.path = '/werewolf.jpg'
         return SimpleHTTPRequestHandler.do_GET(self)
 
     def handleHomepage(self):
         print('handleHomepage')
         cookies = SimpleCookie(self.headers.get('Cookie'))
-        self.send_response(302)
-        if 'username' not in cookies:
-            self.send_header('Location', '/set_username')
-        else:
-            self.send_header('Location', '/waiting_room')
+        self.send_response(200)
         self.end_headers()
+        if 'username' not in cookies:
+            self.wfile.write('''<html><body>We noticed you are not signed in. To create or join a game, please sign in below.<br />
+<button onclick='document.location.href="/set_username"'>SIGN IN</button>
+<br /><br /><br />
+'''.encode('utf8'))
+            self.wfile.write('''
+<button onclick='document.location.href="/new_game"' disabled=true>Host new game</button><br />
+<br />
+OR
+<br />
+<br />
+<form action='/join_game' method='GET'>
+Game Pin:<br />
+<input type='text' name='gamepin' disabled=true/>
+<input type='submit' value='Join!' disabled=true/>
+</form>
+</body>
+</html>
+'''.encode('utf8'))
+        else:
+            self.wfile.write('''
+<button onclick='document.location.href="/new_game"'>Host new game</button><br />
+<br />
+OR
+<br />
+<br />
+<form action='/join_game' method='GET'>
+Game Pin:<br />
+<input type='text' name='gamepin'/>
+<input type='submit' value='Join!'/>
+</form>
+</body>
+</html>
+'''.encode('utf8'))
 
     def waiting_room(self):
         self.send_response(200)
@@ -262,16 +293,15 @@ function updateRoles(roleList) {
             MyHandler.player_usernames.add(username)
             if len(MyHandler.player_usernames) == 1:
                 first_user = username
-            arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
 
             self.wfile.write(f'''
     <html>
     <body>
     Welcome {username}!
     <br />
-    You are player {len(MyHandler.player_usernames)}.
+    There are <span id='player_number'>{len(MyHandler.player_usernames)}</span> players.
     <br />'''.encode('utf-8'))
-            self.wfile.write(f'Here are the current players:<ul id = "player_list">'.encode('utf-8'))
+            self.wfile.write('Here are the current players:<ul id = "player_list">'.encode('utf-8'))
             for username in MyHandler.player_usernames:
                 self.wfile.write(f'<li>{username}</li>'.encode('utf-8'))
             self.wfile.write('''
@@ -298,6 +328,7 @@ function updateRoles(roleList) {
                         player.innerHTML = updatedPlayers[element]
                         player_list.appendChild(player);
                     }
+                    document.getElementById('player_number').innerHTML = updatedPlayers.length;
                 }
                 else if (response['mode'] == 'pick_roles') {
                     document.location.href = '/view_roles'
@@ -509,7 +540,7 @@ function drawBoard(list, starting) {
         x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 300;
         image = document.createElement('img');
         if (player == 0) {
-            image.src = player_role_list[my_index][1]
+            image.src = player_role_list[my_index][1] + '.jpg'
         }
         else {
             image.src = 'Card Backside.jpg';
@@ -642,14 +673,13 @@ night_order = (
     Cards("revealer", None, (False, True, True, False)),
     Cards("curator", None, (False, True, True, True))
 )
+
 def main():
     print("One Night Werewolf Web")
-   
+
     httpd = ReuseHTTPServer(('0.0.0.0', 8000), MyHandler)
     httpd.serve_forever()
    
 
 if __name__ == '__main__':
     main()
- 
-players = 0
