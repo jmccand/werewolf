@@ -6,6 +6,8 @@ import socket
 from http.cookies import SimpleCookie
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import json
+import uuid
+import re
 
 class MyHandler(SimpleHTTPRequestHandler):
 
@@ -28,7 +30,6 @@ class MyHandler(SimpleHTTPRequestHandler):
             self.send_header('Location', 'http://werewolf.joelmccandless.com:8000')
             self.end_headers()
             return
-
         else:
             if self.path == '/change_username':
                 return self.change_username()
@@ -36,31 +37,32 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.set_username()
             elif 'username' not in cookies:
                 return self.set_username()
-            elif 'username' in cookies:
-                if self.path == '/':
-                    return self.handleHomepage()
-                elif self.path == '/waiting_room':
-                    return self.waiting_room()
-                elif self.path.endswith('.jpg'):
-                    return self.load_image()
-                elif len(MyHandler.player_usernames) == 0 or cookies['username'].value not in MyHandler.player_usernames:
-                    return self.waiting_room()
-                else:
-                    print('player usernames: ' + str(MyHandler.player_usernames))
-                    print('else of do get: ' + str(MyHandler.role_list))
-                    if self.path == '/game_state':
-                        return self.get_gamestate()
-                    elif self.path == '/pick_roles':
-                        return self.pick_roles()
-                    elif self.path.startswith('/set_roles'):
-                        return self.set_roles()
-                    elif self.path == '/view_roles':
-                        return self.view_roles()
-                    elif self.path == '/deal_cards':
-                        print('right before deal cards of do get: ' + str(MyHandler.role_list))
-                        return self.deal_cards()
-                    elif self.path == '/show_cards':
-                        return self.show_cards()
+            elif self.path == '/':
+                return self.handleHomepage()
+            elif self.path == '/waiting_room':
+                return self.waiting_room()
+            elif self.path.endswith('.jpg'):
+                return self.load_image()
+            elif len(MyHandler.player_usernames) == 0 or cookies['username'].value not in MyHandler.player_usernames:
+                return self.waiting_room()
+            elif self.path == '/game_state':
+                return self.get_gamestate()
+            elif self.path == '/pick_roles':
+                return self.pick_roles()
+            elif self.path.startswith('/set_roles'):
+                return self.set_roles()
+            elif self.path == '/view_roles':
+                return self.view_roles()
+            elif self.path == '/deal_cards':
+                return self.deal_cards()
+            elif self.path == '/show_cards':
+                return self.show_cards()
+            elif self.path.startswith('/new_game'):
+                return self.new_game()
+            elif self.path.startswith('/join_game'):
+                return self.join_game()
+            elif re.match(self.path, '/(?P<id>)'):
+                return self.game(match.group('id'))
                     
     def set_username(self):
         print('set username')
@@ -279,80 +281,92 @@ Game Pin:<br />
 </form>
 </body>
 </html>
-'''.encode('utf8'))
+            '''.encode('utf8'))
+
+    def parseGameRoom(self):
+        arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        if 'id' in arguments:
+            return arguments['id'][0]
+        else:
+            return False
 
     def waiting_room(self):
-        self.send_response(200)
-        self.end_headers()
+        ID = self.parseGameRoom()
+        if ID != False:
+            self.send_response(200)
+            self.end_headers()
 
-        cookies = SimpleCookie(self.headers.get('Cookie'))
-        if 'username' not in cookies:
-            self.wfile.write('''<html><body>Sorry, your username was not found.</body></html>'''.encode('utf-8'))
-        else:
-            username = cookies['username'].value
-            MyHandler.player_usernames.add(username)
-            if len(MyHandler.player_usernames) == 1:
-                first_user = username
+            cookies = SimpleCookie(self.headers.get('Cookie'))
+            if 'username' not in cookies:
+                self.wfile.write('''<html><body>Sorry, your username was not found.</body></html>'''.encode('utf-8'))
+            else:
+                username = cookies['username'].value
+                MyHandler.player_usernames.add(username)
+                if len(MyHandler.player_usernames) == 1:
+                    first_user = username
 
-            self.wfile.write(f'''
-    <html>
-    <body>
-    Welcome {username}!
-    <br />
-    There are <span id='player_number'>{len(MyHandler.player_usernames)}</span> players.
-    <br />'''.encode('utf-8'))
-            self.wfile.write('Here are the current players:<ul id = "player_list">'.encode('utf-8'))
-            for username in MyHandler.player_usernames:
-                self.wfile.write(f'<li>{username}</li>'.encode('utf-8'))
-            self.wfile.write('''
-    </ul>
-    <button type = 'button' onclick = 'document.location.href = "/change_username"'>
-    Change username
-    </button>
-    <script>
-    function refreshPage() {
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "/game_state", true);
-        xhttp.send();
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                var response = JSON.parse(this.responseText);
-                var updatedPlayers = response['players']
-                if (response['mode'] == 'waiting_room') {
-                    var player_list = document.getElementById('player_list');
-                    while (player_list.firstChild) {
-                        player_list.removeChild(player_list.firstChild);
-                    }
-                    for (element = 0; element < updatedPlayers.length; element++) {
-                        var player = document.createElement('li');
-                        player.innerHTML = updatedPlayers[element]
-                        player_list.appendChild(player);
-                    }
-                    document.getElementById('player_number').innerHTML = updatedPlayers.length;
-                }
-                else if (response['mode'] == 'pick_roles') {
-                    document.location.href = '/view_roles'
-                }
-                console.log('updatedPlayerList: ' + this.responseText);
-            }
-        };
-        setTimeout(refreshPage, 1000);
-    }
-    setTimeout(refreshPage, 1000);
-    </script>
-    '''.encode('utf-8'))
-            MyHandler.player_usernames.add(username)
-
-            if len(MyHandler.player_usernames) == 1:
+                self.wfile.write(f'''
+        <html>
+        <body>
+        Welcome {username}!
+        <br />
+        There are <span id='player_number'>{len(MyHandler.player_usernames)}</span> players.
+        <br />'''.encode('utf-8'))
+                self.wfile.write('Here are the current players:<ul id = "player_list">'.encode('utf-8'))
+                for username in MyHandler.player_usernames:
+                    self.wfile.write(f'<li>{username}</li>'.encode('utf-8'))
                 self.wfile.write('''
-    <button type = 'button' onclick = 'document.location.href = "/pick_roles"'>
-    Select Roles
-    </button>
-    '''.encode('utf8'))
-            self.wfile.write('''
-    </body>
-    </html>
-    '''.encode('utf8'))
+        </ul>
+        <button type = 'button' onclick = 'document.location.href = "/change_username"'>
+        Change username
+        </button>
+        <script>
+        function refreshPage() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/game_state", true);
+            xhttp.send();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var response = JSON.parse(this.responseText);
+                    var updatedPlayers = response['players']
+                    if (response['mode'] == 'waiting_room') {
+                        var player_list = document.getElementById('player_list');
+                        while (player_list.firstChild) {
+                            player_list.removeChild(player_list.firstChild);
+                        }
+                        for (element = 0; element < updatedPlayers.length; element++) {
+                            var player = document.createElement('li');
+                            player.innerHTML = updatedPlayers[element]
+                            player_list.appendChild(player);
+                        }
+                        document.getElementById('player_number').innerHTML = updatedPlayers.length;
+                    }
+                    else if (response['mode'] == 'pick_roles') {
+                        document.location.href = '/view_roles'
+                    }
+                    console.log('updatedPlayerList: ' + this.responseText);
+                }
+            };
+            setTimeout(refreshPage, 1000);
+        }
+        setTimeout(refreshPage, 1000);
+        </script>
+        '''.encode('utf-8'))
+                MyHandler.player_usernames.add(username)
+
+                if len(MyHandler.player_usernames) == 1:
+                    self.wfile.write('''
+        <button type = 'button' onclick = 'document.location.href = "/pick_roles"'>
+        Select Roles
+        </button>
+        '''.encode('utf8'))
+                self.wfile.write('''
+        </body>
+        </html>
+        '''.encode('utf8'))
+        else:
+            self.send_response(400)
+            self.end_headers()
 
     def set_roles(self):
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
@@ -577,8 +591,54 @@ setTimeout(refreshPage, 1000);
 </body>
 </html>
 ''' % (my_index)).encode('utf8'))
-            
-                        
+
+    def new_game(self):
+        gameID = uuid.uuid1().hex
+        Game.newGame(gameID)
+        self.send_response(302)
+        self.send_header('Location', '/join_game?id=%s' % (gameID))
+        self.end_headers()
+        self.wfile.write('You should be redirected')
+
+    def join_game(self):
+        arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
+        if 'id' in arguments:
+            if Game.canJoin(arguments['id'][0]):
+                self.send_response(302)
+                self.send_header('Location', '/%s' % arguments['id'][0])
+                self.end_headers()
+        else:
+            self.send_response(400)
+            self.end_headers()
+
+    def game(uuid):
+        
+
+class Game:
+
+    running_games = {}
+
+    def __init__(self, uuid, gamestate, players, position_username_role):
+        self.uuid = uuid
+        self.gamestate = gamestate
+        self.players = players
+        self.position_username_role = position_username_role
+
+    def newGame(uuid):
+        running_games[uuid] = Game(uuid, 'waiting_room', [], [])
+
+    def canJoin(uuid):
+        if uuid in Game.running_games:
+            myGame = Game.running_games
+        else:
+            return False
+        
+        if myGame.gamestate == 'waiting_room':
+            return True
+        else:
+            return False
+
+
 class ReuseHTTPServer(HTTPServer):
     
     def server_bind(self):
