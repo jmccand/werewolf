@@ -10,17 +10,9 @@ import uuid
 
 class MyHandler(SimpleHTTPRequestHandler):
 
-    player_usernames = set()
-    first_user = None
-    game_mode = 'waiting_room'
-    role_list = []
-    position_username_role = []
-
     def do_GET(self):
         print('\npath = ' + self.path)
 
-        cookies = SimpleCookie(self.headers.get('Cookie'))
-        
         host = self.headers.get('Host')
         print(host)
         if host != 'werewolf.joelmccandless.com:8000':
@@ -99,20 +91,22 @@ class MyHandler(SimpleHTTPRequestHandler):
 
     def get_gamestate(self):
         myID = self.get_game_id()
+        myGame = Game.running_games[myID]
         self.send_response(200)
         self.end_headers()
-        if MyHandler.game_mode == 'waiting_room':
-            game_state = {'mode': 'waiting_room', 'players': list(MyHandler.player_usernames)}
-        elif MyHandler.game_mode == 'pick_roles':
-            game_state = {'mode': 'pick_roles', 'roles': MyHandler.role_list}
-        elif MyHandler.game_mode == 'show_cards':
-            game_state = {'mode': 'show_cards', 'roles': MyHandler.position_username_role}
+        if myGame.gamestate == 'waiting_room':
+            game_state = {'mode': 'waiting_room', 'players': list(myGame.players)}
+        elif myGame.gamestate == 'pick_roles':
+            game_state = {'mode': 'pick_roles', 'roles': myGame.selected_roles}
+        elif myGame.gamestate == 'show_cards':
+            game_state = {'mode': 'show_cards', 'roles': myGame.position_username_role}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
-        print('gamestate role list: ' + str(MyHandler.role_list))
 
     def pick_roles(self):
-        MyHandler.game_mode = 'pick_roles'
-        print('GAME MODE SWITCHED TO PICK ROLES')
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        myGame.gamestate = 'pick_roles'
+        print(myGame.uuid + ' GAME: MODE SWITCHED TO PICK ROLES')
         self.send_response(200)
         self.end_headers()
         self.wfile.write(str('''
@@ -150,7 +144,7 @@ roles selected
 </div>
 
 <h2>
-<button id='start_game' onclick='document.location.href = "/deal_cards"' type = 'button' style = 'position : fixed; top : 55%%; left : 50; z-index : 1' disabled='true'>
+<button id='start_game' onclick='document.location.href = "/deal_cards?id=%s"' type = 'button' style = 'position : fixed; top : 55%%; left : 50; z-index : 1' disabled='true'>
 <font size = '6'>
 Start Game
 </font>
@@ -223,13 +217,13 @@ function selectCard(element) {
 }
 function updateRoles(roleList) {
         var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "/set_roles?roles=" + roleList.join(), true);
+        xhttp.open("GET", "/set_roles?id=%s&roles=" + roleList.join(), true);
         xhttp.send();
 }
 </script>
 </body>
 </html>
-''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
+''' % (len(myGame.players) + 3, myID, len(myGame.players) + 3, myID)).encode('utf8'))
 
     def load_image(self):
         if self.path.startswith('/werewolf'):
@@ -294,6 +288,7 @@ Here is a list of public games that you can join:<br />
 
     def waiting_room(self):
         myID = self.get_game_id()
+        myGame = Game.running_games[self.get_game_id()]
         username = self.getUsername()
         
         self.send_response(200)
@@ -306,10 +301,10 @@ Here is a list of public games that you can join:<br />
 <body>
 Welcome {username}!
 <br />
-There are <span id='player_number'>{len(MyHandler.player_usernames)}</span> players.
+There are <span id='player_number'>{len(myGame.players)}</span> players.
 <br />'''.encode('utf-8'))
         self.wfile.write('Here are the current players:<ol id = "player_list">'.encode('utf-8'))
-        for username in MyHandler.player_usernames:
+        for username in myGame.players:
             self.wfile.write(f'<li>{username}</li>'.encode('utf-8'))
         self.wfile.write(('''
 </ol>
@@ -338,7 +333,7 @@ function refreshPage() {
                 document.getElementById('player_number').innerHTML = updatedPlayers.length;
             }
             else if (response['mode'] == 'pick_roles') {
-                document.location.href = '/view_roles'
+                document.location.href = '/view_roles?id=%s'
             }
             console.log('updatedPlayerList: ' + this.responseText);
         }
@@ -347,14 +342,14 @@ function refreshPage() {
 }
 setTimeout(refreshPage, 1000);
 </script>
-        ''' % Game.running_games[myID].uuid).encode('utf8'))
+        ''' % (myID, myID)).encode('utf8'))
 
-        if Game.running_games[myID].players[0] == username:
-            self.wfile.write('''
-<button type = 'button' onclick = 'document.location.href = "/pick_roles"'>
+        if myGame.players[0] == username:
+            self.wfile.write(('''
+<button type = 'button' onclick = 'document.location.href = "/pick_roles?id=%s"'>
 Select Roles
 </button>
-            '''.encode('utf8'))
+            ''' % myID).encode('utf8'))
 
         self.wfile.write('''
 </body>
@@ -362,15 +357,19 @@ Select Roles
         '''.encode('utf8'))
 
     def set_roles(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
-        print(arguments)
-        if arguments['roles'] == ['']:
-            MyHandler.role_list = []
-        else:
-            MyHandler.role_list = arguments['roles'][0].split(",")
-        print('set roles role list: ' + str(MyHandler.role_list))
+        if 'roles' in arguments:
+            if arguments['roles'] == ['']:
+                myGame.selected_roles = []
+            else:
+                myGame.selected_roles = arguments['roles'][0].split(",")
+                print('set roles role list: ' + str(MyHandler.role_list))
 
     def view_roles(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
         self.send_response(200)
         self.end_headers()
         self.wfile.write(str('''
@@ -450,7 +449,7 @@ var number_of_players = %s;
 
 function refreshPage() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "/game_state", true);
+    xhttp.open("GET", "/game_state?id=%s", true);
     xhttp.send();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
@@ -488,7 +487,7 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-''' % (len(MyHandler.player_usernames) + 3, len(MyHandler.player_usernames) + 3)).encode('utf8'))
+''' % (len(myGame.players) + 3, len(myGame.players) + 3, myID)).encode('utf8'))
 
     def deal_cards(self):
         if len(MyHandler.player_usernames) + 3 != len(MyHandler.role_list):
@@ -594,6 +593,7 @@ setTimeout(refreshPage, 1000);
             else:
                 self.send_response(400)
                 self.end_headers()
+                self.wfile.write('<html><body>This game is not currently running. Return to the homepage <a href="/">here</a>.'.encode('utf8'))
                 raise ValueError('no running games under pin; sent response 400')
         else:
             self.send_response(400)
@@ -632,14 +632,15 @@ class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players, position_username_role):
+    def __init__(self, uuid, gamestate, players, selected_roles, position_username_role):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
+        self.selected_roles = selected_roles
         self.position_username_role = position_username_role
 
     def newGame(uuid):
-        Game.running_games[uuid] = Game(uuid, 'waiting_room', [], [])
+        Game.running_games[uuid] = Game(uuid, 'waiting_room', [], [], [])
 
     def canJoin(uuid):
         if uuid in Game.running_games:
