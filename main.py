@@ -10,6 +10,8 @@ import uuid
 
 class MyHandler(SimpleHTTPRequestHandler):
 
+    player_usernames = set()
+
     def do_GET(self):
         print('\npath = ' + self.path)
 
@@ -365,7 +367,6 @@ Select Roles
                 myGame.selected_roles = []
             else:
                 myGame.selected_roles = arguments['roles'][0].split(",")
-                print('set roles role list: ' + str(MyHandler.role_list))
 
     def view_roles(self):
         myID = self.get_game_id()
@@ -477,7 +478,7 @@ function refreshPage() {
                 document.getElementById('total_role_number').innerHTML = total_roles_selected.length + ' / ' + number_of_players;
             }
             else {
-                document.location.href = '/show_cards';
+                document.location.href = '/show_cards?id=%s';
             }
         }
     }
@@ -487,35 +488,39 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-''' % (len(myGame.players) + 3, len(myGame.players) + 3, myID)).encode('utf8'))
+''' % (len(myGame.players) + 3, len(myGame.players) + 3, myID, myID)).encode('utf8'))
 
     def deal_cards(self):
-        if len(MyHandler.player_usernames) + 3 != len(MyHandler.role_list):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        if len(myGame.players) + 3 != len(myGame.selected_roles):
             print('there was an error: incorrect number of roles')
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(f'''<html><body>I'm sorry, you must've pressed the start game too fast. The server sees {str(MyHandler.player_usernames)} as players and {str(MyHandler.role_list)} as roles.</body></html>'''.encode('utf8'))
+            self.wfile.write(f'''<html><body>I'm sorry, you must've pressed the start game too fast. The server sees {myGame.players} as players and {myGame.selected_roles} as roles.</body></html>'''.encode('utf8'))
         else:
             print('DEALING CARDS')
-            available_roles = MyHandler.role_list[:]
-            for player in MyHandler.player_usernames:
+            available_roles = myGame.selected_roles[:]
+            for player in myGame.players:
                 choice = random.choice(available_roles)
-                MyHandler.position_username_role.append([player, choice])
+                myGame.position_username_role.append([player, choice])
                 available_roles.remove(choice)
-            MyHandler.game_mode = 'show_cards'
+            myGame.gamestate = 'show_cards'
             self.send_response(302)
-            self.send_header('Location', '/show_cards')
+            self.send_header('Location', '/show_cards?id=%s' % myID)
             self.end_headers()
 
     def show_cards(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
         self.send_response(200)
         self.end_headers()
         cookies = SimpleCookie(self.headers.get('Cookie'))
         username = cookies['username'].value
         my_index = None
-        for player_role in MyHandler.position_username_role:
+        for index, player_role in enumerate(myGame.position_username_role):
             if player_role[0] == username:
-                my_index = MyHandler.position_username_role.index(player_role)
+                my_index = index
         self.wfile.write(str('''
 <html>
 <head>
@@ -553,7 +558,7 @@ function drawBoard(list, starting) {
         }
         image.width = '71';
         image.height = '100';
-        image.style.transform = 'rotate(' + (-(180 + angle + 90)) + 'deg)';
+        image.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         image.style.position = 'fixed';
         image.style.left = 700 + x - 35;
         image.style.top = 360 - y - 50;
@@ -563,7 +568,7 @@ function drawBoard(list, starting) {
 
 function refreshPage() {
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "/game_state", true);
+    xhttp.open("GET", "/game_state?id=%s", true);
     xhttp.send();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
@@ -582,7 +587,7 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-''' % (my_index)).encode('utf8'))
+''' % (my_index, myID)).encode('utf8'))
 
     def get_game_id(self):
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
@@ -598,7 +603,7 @@ setTimeout(refreshPage, 1000);
         else:
             self.send_response(400)
             self.end_headers()
-            raise KeyError('no ID given in url; sent response 400')
+            raise KeyError(f'no ID given in url; sent response 400 (path was {self.path})')
 
     def new_game(self):
         gameID = uuid.uuid1().hex
