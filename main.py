@@ -637,7 +637,7 @@ class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players, selected_roles, position_username_role):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[]):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
@@ -645,7 +645,7 @@ class Game:
         self.position_username_role = position_username_role
 
     def newGame(uuid):
-        Game.running_games[uuid] = Game(uuid, 'waiting_room', [], [], [])
+        Game.running_games[uuid] = Game(uuid, 'waiting_room')
 
     def canJoin(uuid):
         if uuid in Game.running_games:
@@ -657,6 +657,13 @@ class Game:
             return True
         else:
             return False
+
+    def seed_game(self):
+        self.uuid = uuid
+        self.gamestate = 'show_cards'
+        self.players = ['Joel', 'Safari', 'DadMcDadDad', 'Dad McDadDad']
+        self.selected_roles = ['werewolf1', 'werewolf2', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
+        self.position_username_role = [('Joel', 'werewolf1'), ('Safari', 'doppelganger'), ('DadMcDadDad', 'minion'), ('Dad McDadDad', 'sentinel')]
 
 
 class ReuseHTTPServer(HTTPServer):
@@ -756,6 +763,9 @@ night_order = (
 
 def main():
     print("One Night Werewolf Web")
+    Game.newGame('16e7691a8f5211eb80a4a683e7b3717c')
+    myGame = Game.running_games['16e7691a8f5211eb80a4a683e7b3717c']
+    myGame.seed_game()
 
     httpd = ReuseHTTPServer(('0.0.0.0', 8000), MyHandler)
     httpd.serve_forever()
