@@ -75,7 +75,7 @@ class MyHandler(SimpleHTTPRequestHandler):
     '''.encode('utf8'))
         else:
             self.send_response(302)
-            self.send_header('Set-Cookie', 'username=%s; domain=werewolf.joelmccandless.com' % username)
+            self.send_header('Set-Cookie', 'username="%s"; domain=werewolf.joelmccandless.com' % username)
             self.send_header('Location', '/')
             self.end_headers()
 
