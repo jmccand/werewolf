@@ -527,7 +527,7 @@ setTimeout(refreshPage, 1000);
 <title>ONUW TABLE</title>
 <style>
 body {
-	background-image : url('Table.jpg');
+    background-image : url('Table.jpg');
 }
 </style>
 </head>
@@ -545,10 +545,11 @@ function drawBoard(list, starting) {
     var x;
     var y;
     var image;
+    var name;
     for (var player = 0; player < total_player_number; player++) {
         angle = (360.0 / total_player_number) * player - 90;
-        y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 300;
-        x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 300;
+        y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
+        x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
         image = document.createElement('img');
         if (player == 0) {
             image.src = player_role_list[my_index][1] + '.jpg'
@@ -561,8 +562,23 @@ function drawBoard(list, starting) {
         image.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         image.style.position = 'fixed';
         image.style.left = 700 + x - 35;
-        image.style.top = 360 - y - 50;
+        image.style.top = 380 - y - 50;
         document.body.appendChild(image);
+        
+        y *= 13/10;
+        x *= 13/10;
+        name = document.createElement('div');
+        name.innerHTML = player_role_list[player][0];
+        name.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
+        name.style.position = 'fixed';
+        name.style.width = '300';
+        name.style.left = 700 + x - 150;
+        name.style.top = 372 - y;
+        name.style.textAlign = 'center';
+        name.style.fontWeight = 'bold';
+        name.style.color = 'white';
+        console.log(name.style);
+        document.body.appendChild(name);
     }
 }
 
