@@ -503,7 +503,7 @@ setTimeout(refreshPage, 1000);
             available_roles = myGame.selected_roles[:]
             for player in myGame.players:
                 choice = random.choice(available_roles)
-                myGame.position_username_role.append([player, choice])
+                myGame.position_username_role.append((player, choice))
                 available_roles.remove(choice)
             myGame.gamestate = 'show_cards'
             self.send_response(302)
@@ -541,16 +541,11 @@ var player_role_list;
 var my_index = %s;
 function drawBoard(list, starting) {
     var total_player_number = player_role_list.length;
-    var angle;
-    var x;
-    var y;
-    var image;
-    var name;
     for (var player = 0; player < total_player_number; player++) {
-        angle = (360.0 / total_player_number) * player - 90;
-        y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
-        x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
-        image = document.createElement('img');
+        var angle = (360.0 / total_player_number) * player - 90;
+        var y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
+        var x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
+        var image = document.createElement('img');
         if (player == 0) {
             image.src = player_role_list[my_index][1] + '.jpg'
         }
@@ -567,8 +562,8 @@ function drawBoard(list, starting) {
         
         y *= 13/10;
         x *= 13/10;
-        name = document.createElement('div');
-        name.innerHTML = player_role_list[player][0];
+        var name = document.createElement('div');
+        name.innerHTML = player_role_list[(player + my_index) %% total_player_number][0];
         name.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         name.style.position = 'fixed';
         name.style.width = '300';
@@ -577,8 +572,23 @@ function drawBoard(list, starting) {
         name.style.textAlign = 'center';
         name.style.fontWeight = 'bold';
         name.style.color = 'white';
-        console.log(name.style);
         document.body.appendChild(name);
+    }
+
+    for (var player = 0; player < 2; player++) {
+        var angle = -(360.0 / 2) * player;
+        var card;
+        y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 80;
+        x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 80;
+        card = document.createElement('img');
+        card.src = 'Card Backside.jpg';
+        card.width = '71';
+        card.height = '100';
+        card.style.transform = 'rotate(' + (-angle) + 'deg)';
+        card.style.position = 'fixed';
+        card.style.left = 700 + x - 35;
+        card.style.top = 380 - y - 50;
+        document.body.appendChild(card);
     }
 }
 
