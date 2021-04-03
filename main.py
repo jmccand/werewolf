@@ -532,8 +532,8 @@ body {
 </style>
 </head>
 <body>
-<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
-</div>
+<!--<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
+</div>-->
 
 <script>
 var firstRefresh = true;
@@ -575,8 +575,10 @@ function drawBoard(list, starting) {
         document.body.appendChild(name);
     }
 
+    var centerRotation = my_index * 360 / total_player_number;
+
     for (var player = 0; player < 2; player++) {
-        var angle = -(360.0 / 2) * player;
+        var angle = -(360.0 / 2) * player - centerRotation;
         var card;
         y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 80;
         x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 80;
@@ -584,12 +586,21 @@ function drawBoard(list, starting) {
         card.src = 'Card Backside.jpg';
         card.width = '71';
         card.height = '100';
-        card.style.transform = 'rotate(' + (-angle) + 'deg)';
+        card.style.transform = 'rotate(' + (-angle + 180 * player) + 'deg)';
         card.style.position = 'fixed';
         card.style.left = 700 + x - 35;
         card.style.top = 380 - y - 50;
         document.body.appendChild(card);
     }
+    var card = document.createElement('img');
+    card.src = 'Card Backside.jpg';
+    card.width = '71';
+    card.height = '100';
+    card.style.transform = 'rotate(' + (centerRotation) + 'deg)';
+    card.style.position = 'fixed';
+    card.style.left = 700 - 35;
+    card.style.top = 380 - 50;
+    document.body.appendChild(card);
 }
 
 function refreshPage() {
@@ -687,9 +698,9 @@ class Game:
     def seed_game(self):
         self.uuid = uuid
         self.gamestate = 'show_cards'
-        self.players = ['Joel', 'Safari', 'DadMcDadDad', 'Dad McDadDad']
-        self.selected_roles = ['werewolf1', 'werewolf2', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Joel', 'werewolf1'), ('Safari', 'doppelganger'), ('DadMcDadDad', 'minion'), ('Dad McDadDad', 'sentinel')]
+        self.players = ['Joel', 'Safari', 'DadMcDadDad']
+        self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
+        self.position_username_role = [('Joel', 'werewolf1'), ('Safari', 'doppelganger'), ('DadMcDadDad', 'minion')]
 
 
 class ReuseHTTPServer(HTTPServer):
