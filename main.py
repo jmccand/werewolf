@@ -102,6 +102,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             game_state = {'mode': 'pick_roles', 'roles': myGame.selected_roles}
         elif myGame.gamestate == 'show_cards':
             game_state = {'mode': 'show_cards', 'roles': myGame.position_username_role}
+        elif myGame.gamestate == 'night':
+            game_state = {'mode': 'night', 'hour': myGame.hour}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -521,6 +523,7 @@ setTimeout(refreshPage, 1000);
         for index, player_role in enumerate(myGame.position_username_role):
             if player_role[0] == username:
                 my_index = index
+        my_role = myGame.position_username_role[my_index][1]
         self.wfile.write(str('''
 <html>
 <head>
@@ -539,6 +542,7 @@ body {
 var firstRefresh = true;
 var player_role_list;
 var my_index = %s;
+var my_role;
 function drawBoard(list, starting) {
     var total_player_number = player_role_list.length;
     for (var player = 0; player < total_player_number; player++) {
@@ -548,6 +552,7 @@ function drawBoard(list, starting) {
         var image = document.createElement('img');
         if (player == 0) {
             image.src = player_role_list[my_index][1] + '.jpg'
+            image.id = 'my_card';
         }
         else {
             image.src = 'Card Backside.jpg';
@@ -603,6 +608,100 @@ function drawBoard(list, starting) {
     document.body.appendChild(card);
 }
 
+function myTurn() {
+    my_role  = player_role_list[my_index][1];
+    var div = document.createElement('div');
+    div.innerHTML = 'Awaken ' + my_role + '\\n';
+    var partnerMason = false;
+    if (my_role == 'mason1' || my_role == 'mason2') {
+        for (var index = 0; index < player_role_list; index++) {
+            if ((player_role_list[index][1] == 'mason1' || player_role_list[index][1] == 'mason2') && player_role_list[index][1] != my_role) {
+                partnerMason = player_role_list[index][0];
+            }
+        }
+    }
+
+    var partnerWolf = false;
+    if (my_role == 'werewolf1' || my_role == 'werewolf2') {
+        for (var index = 0; index < player_role_list; index++) {
+            if ((player_role_list[index][1] == 'werewolf1' || player_role_list[index][1] == 'werewolf2' || player_role_list[index][1] == 'alpha wolf' || player_role_list[index][1] == 'mystic wolf') && player_role_list[index][1] != my_role) {
+                partnerWolf = player_role_list[index][0];
+            }
+        }
+    }
+    switch (my_role) {
+        case 'alpha wolf':
+            div.innerHTML += 'Click on another player to give the center werewolf card to them, changing their role to be a werewolf.';
+        case 'mystic wolf':
+            if (my_role != 'alpha wolf') {
+                div.innerHTML += 'Click on another player to view their card.';
+            }
+        case 'werewolf1':
+        case 'werewolf2':
+            if (partnerWolf == false) {
+                div.innerHTML += 'You are the lone wolf. No other player was dealt a werewolf card. Click on one of the center cards to view it.';
+            }
+            else {
+                div.innerHTML += 'Your partner werewolf is ' + partnerWolf + '.';
+            }
+            break;
+        case 'apprentice seer':
+            div.innerHTML += 'Click on one center card to view it.';
+            break;
+        case 'bodyguard':
+            div.innerHTML += "Click on someone else's card to make it unmovable.";
+            break;
+        case 'curator':
+            div.innerHTML += "Click on someone else's card to give them a random token.";
+            break;
+        case 'doppleganger':
+            div.innerHTML += "Click on someone else's card to view it and change your role to theirs.";
+            break;
+        case 'dream wolf':
+            break;
+        case 'drunk':
+            div.innerHTML += 'Click on a center card to swap roles with it. You will not know what you get.';
+            break;
+        case 'hunter':
+            break;
+        case 'insomniac':
+            div.innerHTML += 'You are now the ' + my_role + '.';
+            break;
+        case 'mason1':
+        case 'mason2':
+            if (partnerMason != false) {
+                div.innerHTML += 'The other mason is ' + partnerMason + '.';
+            }
+            else {
+                div.innerHTML += 'The other mason is in the middle; no one else has a mason card.';
+            }
+            break;
+        case 'minion':
+            div.innerHTML += 'The werewolves are ';
+            break;
+        case 'paranormal investigator':
+            break;
+        case 'revealer':
+            break;
+        case 'robber':
+            break;
+        case 'seer':
+            break;
+        case 'sentinel':
+            break;
+        case 'tanner':
+            break;
+        case 'troublemaker':
+            break;
+        case 'village idiot':
+            break;
+        case 'villager':
+            break;
+        case 'witch':
+            break;
+    }
+}
+
 function refreshPage() {
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/game_state?id=%s", true);
@@ -614,6 +713,12 @@ function refreshPage() {
             if (firstRefresh) {
                 drawBoard(player_role_list, my_index);
                 firstRefresh = false;
+            }
+            else if (response['mode'] == 'night') {
+                document.getElementById('my_card').src = 'Card Backside.jpg';
+                if (response['hour'].indexOf(player_role_list[my_index][1]) != -1) {
+                    myTurn();
+                }
             }
         }
     }
@@ -659,27 +764,23 @@ setTimeout(refreshPage, 1000);
         else:
             return self.handleHomepage(myID)
 
-#    def game(self):
-#        print('GAME FUNCTION HAS BEEN CALLED')
-#        myID = self.get_game_id()
-#        if Game.running_games[myID].gamestate == 'waiting_room':
-#            self.send_response(302)
-#            self.send_header('Location', '/waiting_room?id=%s' % myID)
-#            self.end_headers()
-#        else:
-            
-
+    def start_night(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        myGame.gamestate = 'night'
+        
 
 class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[]):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], hour=None):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
         self.selected_roles = selected_roles
         self.position_username_role = position_username_role
+        self.hour = hour
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
@@ -701,6 +802,7 @@ class Game:
         self.players = ['Joel', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
         self.position_username_role = [('Joel', 'werewolf1'), ('Safari', 'doppelganger'), ('DadMcDadDad', 'minion')]
+        self.hour = 0
 
 
 class ReuseHTTPServer(HTTPServer):
