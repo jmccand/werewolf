@@ -615,7 +615,7 @@ function drawBoard() {
 function myTurn() {
     my_role = player_role_list[my_index][1];
     var div = document.createElement('div');
-    div.innerHTML = 'Awaken ' + my_role + '\\n';
+    div.innerHTML = 'Awaken ' + my_role + '!<br />';
     switch (my_role) {
         case 'alpha wolf':
             div.innerHTML += alpha_wolf();
@@ -687,11 +687,13 @@ function myTurn() {
             div.innerHTML += witch();
             break;
     }
-    div.style = 'position: absolute; top: 20px; left: 50%%;';
-    document.appendChild(div);
+    div.style = 'position: absolute; top: 20px; left: 50%%; background-color: white; border-style: solid; border-color: red;';
+    div.align = 'center';
+    document.body.appendChild(div);
 }
 
 function werewolf() {
+    console.log('werewolf function called!');
     var partnerWolf = false;
     for (var index = 0; index < player_role_list; index++) {
         if ((player_role_list[index][1].indexOf('wolf')) && player_role_list[index][1] != my_role) {
@@ -738,7 +740,7 @@ setTimeout(refreshPage, 1000);
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
         myGame.gamestate = 'night'
-        myGame.hour = 'doppelganger'
+        myGame.hour = ['werewolf1', 'werewolf2']
         self.send_response(302)
         self.send_header('Location', f'/show_cards?id={myID}')
         self.end_headers()
