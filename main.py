@@ -105,7 +105,8 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif myGame.gamestate == 'show_cards':
             game_state = {'mode': 'show_cards', 'roles': myGame.position_username_role}
         elif myGame.gamestate == 'night':
-            game_state = {'mode': 'night', 'hour': myGame.hour}
+            game_state = {'mode': 'night', 'active_roles': myGame.active_roles}
+            print(f'active_roles: {myGame.active_roles}')
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -687,7 +688,7 @@ function myTurn() {
             div.innerHTML += witch();
             break;
     }
-    div.style = 'position: absolute; top: 20px; left: 50%%; background-color: white; border-style: solid; border-color: red;';
+    div.style = 'position: absolute; top: 20px; left: 50%%; offset-position: left 150px; background-color: white; border-style: solid; border-color: red; width: 300px;';
     div.align = 'center';
     document.body.appendChild(div);
 }
@@ -695,8 +696,8 @@ function myTurn() {
 function werewolf() {
     console.log('werewolf function called!');
     var partnerWolf = false;
-    for (var index = 0; index < player_role_list; index++) {
-        if ((player_role_list[index][1].indexOf('wolf')) && player_role_list[index][1] != my_role) {
+    for (var index = 0; index < player_role_list.length; index++) {
+        if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
             partnerWolf = player_role_list[index][0];
         }
     }
@@ -709,6 +710,7 @@ function werewolf() {
 }
 
 function refreshPage() {
+    var alreadyRefreshedNight = false;
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/game_state?id=%s", true);
     xhttp.send();
@@ -720,9 +722,12 @@ function refreshPage() {
                 firstRefresh = false;
             }
             else if (response['mode'] == 'night') {
-                document.getElementById('my_card').src = 'Card Backside.jpg';
-                if (response['hour'].indexOf(player_role_list[my_index][1]) != -1) {
-                    myTurn();
+                if (alreadyRefreshedNight == false) {
+                    alreadyRefreshedNight = true;
+                    document.getElementById('my_card').src = 'Card Backside.jpg';
+                    if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
+                        myTurn();
+                    }
                 }
             }
         }
@@ -740,7 +745,7 @@ setTimeout(refreshPage, 1000);
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
         myGame.gamestate = 'night'
-        myGame.hour = ['werewolf1', 'werewolf2']
+        myGame.active_roles = ['werewolf1', 'werewolf2']
         self.send_response(302)
         self.send_header('Location', f'/show_cards?id={myID}')
         self.end_headers()
@@ -782,13 +787,13 @@ class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], hour=None):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], active_roles=None):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
         self.selected_roles = selected_roles
         self.position_username_role = position_username_role
-        self.hour = hour
+        self.active_roles = active_roles
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
@@ -807,10 +812,11 @@ class Game:
     def seed_game(self):
         self.uuid = uuid
         self.gamestate = 'show_cards'
-        self.players = ['Joel', 'Safari', 'DadMcDadDad']
+        #self.gamestate = 'night'
+        self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Joel', 'werewolf1'), ('Safari', 'doppelganger'), ('DadMcDadDad', 'minion')]
-        self.hour = 0
+        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'werewolf2'), ('DadMcDadDad', 'minion')]
+        self.active_roles = ('werewolf1', 'werewolf2')
 
 
 class ReuseHTTPServer(HTTPServer):
