@@ -567,7 +567,7 @@ function drawBoard() {
         image.height = '100';
         image.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         image.style.position = 'fixed';
-        image.style.left = 700 + x - 35;
+        image.style.left = 735 + x - 35;
         image.style.top = 380 - y - 50;
         document.body.appendChild(image);
         
@@ -578,7 +578,7 @@ function drawBoard() {
         name.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         name.style.position = 'fixed';
         name.style.width = '300';
-        name.style.left = 700 + x - 150;
+        name.style.left = 735 + x - 150;
         name.style.top = 372 - y;
         name.style.textAlign = 'center';
         name.style.fontWeight = 'bold';
@@ -599,7 +599,7 @@ function drawBoard() {
         card.height = '100';
         card.style.transform = 'rotate(' + (-angle + 180 * player) + 'deg)';
         card.style.position = 'fixed';
-        card.style.left = 700 + x - 35;
+        card.style.left = 735 + x - 35;
         card.style.top = 380 - y - 50;
         document.body.appendChild(card);
     }
@@ -609,7 +609,7 @@ function drawBoard() {
     card.height = '100';
     card.style.transform = 'rotate(' + (centerRotation) + 'deg)';
     card.style.position = 'fixed';
-    card.style.left = 700 - 35;
+    card.style.left = 735 - 35;
     card.style.top = 380 - 50;
     document.body.appendChild(card);
 }
@@ -689,7 +689,7 @@ function myTurn() {
             div.innerHTML += witch();
             break;
     }
-    div.style = 'position: absolute; top: 20px; left: 38%%; background-color: white; border-style: solid; border-color: red; width: 300px;';
+    div.style = 'position: absolute; top: 20px; left: 40%%; background-color: white; border-style: solid; border-color: red; width: 20%%;';
     div.align = 'center';
     document.body.appendChild(div);
 }
