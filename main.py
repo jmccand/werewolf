@@ -541,13 +541,14 @@ body {
 <!--<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
 </div>-->'''.encode('utf8'))
         if my_index == 0:
-            self.wfile.write(f'''<button type='button' onclick='document.location.href="/start_night?id={myID}"'>Start night</button>'''.encode('utf8'))
+            self.wfile.write(f'''<button id='start_night_button' type='button' onclick='document.location.href="/start_night?id={myID}"'>Start night</button>'''.encode('utf8'))
         self.wfile.write(('''
 <script>
 var firstRefresh = true;
 var player_role_list = %s;
 var my_index = %s;
 var my_role;
+var alreadyRefreshedNight = false;
 function drawBoard() {
     var total_player_number = player_role_list.length;
     for (var player = 0; player < total_player_number; player++) {
@@ -710,7 +711,6 @@ function werewolf() {
 }
 
 function refreshPage() {
-    var alreadyRefreshedNight = false;
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/game_state?id=%s", true);
     xhttp.send();
@@ -723,7 +723,13 @@ function refreshPage() {
             }
             else if (response['mode'] == 'night') {
                 if (alreadyRefreshedNight == false) {
-                    alreadyRefreshedNight = true;
+                    alreadyRefreshedNight = true;''' % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID)).encode('utf8'))
+        if my_index == 0:
+            self.wfile.write('''
+                    var child = document.getElementById('start_night_button');
+                    child.parentNode.removeChild(child);
+            '''.encode('utf8'))
+        self.wfile.write('''
                     document.getElementById('my_card').src = 'Card Backside.jpg';
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         myTurn();
@@ -739,7 +745,7 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-''' % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID)).encode('utf8'))
+'''.encode('utf8'))
 
     def start_night(self):
         myID = self.get_game_id()
