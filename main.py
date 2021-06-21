@@ -689,7 +689,7 @@ function myTurn() {
             div.innerHTML += witch();
             break;
     }
-    div.style = 'position: absolute; top: 20px; left: 50%%; offset-position: left 150px; background-color: white; border-style: solid; border-color: red; width: 300px;';
+    div.style = 'position: absolute; top: 20px; left: 38%%; background-color: white; border-style: solid; border-color: red; width: 300px;';
     div.align = 'center';
     document.body.appendChild(div);
 }
