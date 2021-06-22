@@ -604,6 +604,8 @@ function drawBoard() {
         card.style.position = 'fixed';
         card.style.left = 735 + x - 35;
         card.style.top = 380 - y - 50;
+        //really important onclick for selection:
+        card.setAttribute('onclick', 'select(this)');
         document.body.appendChild(card);
     }
     var card = document.createElement('img');
@@ -614,84 +616,89 @@ function drawBoard() {
     card.style.position = 'fixed';
     card.style.left = 735 - 35;
     card.style.top = 380 - 50;
+    //really important onclick for selection:
+    card.setAttribute('onclick', 'select(this)');
     document.body.appendChild(card);
 }
 
 function myTurn() {
     my_role = player_role_list[my_index][1];
-    var div = document.createElement('div');
-    div.innerHTML = 'Awaken ' + my_role + '!<br />';
     switch (my_role) {
         case 'alpha wolf':
-            div.innerHTML += alpha_wolf();
+            alpha_wolf();
         case 'mystic wolf':
-            div.innerHTML += mystic_wolf();
+            mystic_wolf();
         case 'werewolf1':
         case 'werewolf2':
-            div.innerHTML += werewolf();
+            werewolf();
             break;
         case 'apprentice seer':
-            div.innerHTML += apprentice_seer();
+            apprentice_seer();
             break;
         case 'bodyguard':
-            div.innerHTML += bodyguard();
+            bodyguard();
             break;
         case 'curator':
-            div.innerHTML += curator();
+            curator();
             break;
         case 'doppleganger':
-            div.innerHTML += doppleganger();
+            doppleganger();
             break;
         case 'dream wolf':
-            div.innerHTML += dream_wolf();
+            dream_wolf();
             break;
         case 'drunk':
-            div.innerHTML += drunk();
+            drunk();
             break;
         case 'hunter':
-            div.innerHTML += hunter();
+            hunter();
             break;
         case 'insomniac':
-            div.innerHTML += insomniac();
+            insomniac();
             break;
         case 'mason1':
         case 'mason2':
-            div.innerHTML += mason();
+            mason();
             break;
         case 'minion':
-            div.innerHTML += minion();
+            minion();
             break;
         case 'paranormal investigator':
-            div.innerHTML += paranormal_investigator();
+            paranormal_investigator();
             break;
         case 'revealer':
-            div.innerHTML += revealer();
+            revealer();
             break;
         case 'robber':
-            div.innerHTML += robber();
+            robber();
             break;
         case 'seer':
-            div.innerHTML += seer();
+            seer();
             break;
         case 'sentinel':
-            div.innerHTML += sentinel();
+            sentinel();
             break;
         case 'tanner':
-            div.innerHTML += tanner();
+            tanner();
             break;
         case 'troublemaker':
-            div.innerHTML += troublemaker();
+            troublemaker();
             break;
         case 'village idiot':
-            div.innerHTML += village_idiot();
+            village_idiot();
             break;
         case 'villager':
-            div.innerHTML += villager();
+            villager();
             break;
         case 'witch':
-            div.innerHTML += witch();
+            witch();
             break;
     }
+}
+
+function doDivTextbox(message) {
+    var div = document.createElement('div');
+    div.innerHTML = 'Awaken ' + my_role + '!<br />' + message;
     div.style = 'position: absolute; top: 20px; left: 40%%; background-color: white; border-style: solid; border-color: red; width: 20%%;';
     div.align = 'center';
     document.body.appendChild(div);
@@ -706,11 +713,11 @@ function werewolf() {
         }
     }
     if (partnerWolf != false) {
-        return 'Your partner is ' + partnerWolf + '.';
+        doDivTextbox('Your partner is ' + partnerWolf + '.');
     }
     else {
-        return 'You are the lone wolf. Select a card in the center to view.';
-        var thisSelection = selectNext();
+        doDivTextbox('You are the lone wolf. Select a card in the center to view.');
+        //var thisSelection = selectNext();
         /*while (thisSelection.indexOf('Center') == -1) {
             thisSelection = selectNext();
         }*/
@@ -728,6 +735,7 @@ function selectNext() {
 
 function select(element) {
     selected = element;
+    console.log('select got ' + selected);
 }
 
 function refreshPage() {
