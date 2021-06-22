@@ -549,6 +549,7 @@ var player_role_list = %s;
 var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
+var selected;
 function drawBoard() {
     var total_player_number = player_role_list.length;
     for (var player = 0; player < total_player_number; player++) {
@@ -569,6 +570,8 @@ function drawBoard() {
         image.style.position = 'fixed';
         image.style.left = 735 + x - 35;
         image.style.top = 380 - y - 50;
+        //really important onclick for selection:
+        image.setAttribute('onclick', 'select(this)');
         document.body.appendChild(image);
         
         y *= 13/10;
@@ -707,7 +710,24 @@ function werewolf() {
     }
     else {
         return 'You are the lone wolf. Select a card in the center to view.';
+        var thisSelection = selectNext();
+        /*while (thisSelection.indexOf('Center') == -1) {
+            thisSelection = selectNext();
+        }*/
+        
     }
+}
+
+function selectNext() {
+    selected = null;
+    while (selected == null) {
+    }
+    console.log('selectNext caught ' + selected.src);
+    return selected;
+}
+
+function select(element) {
+    selected = element;
 }
 
 function refreshPage() {
@@ -817,13 +837,13 @@ class Game:
 
     def seed_game(self):
         self.uuid = uuid
-        self.gamestate = 'show_cards'
-        #self.gamestate = 'night'
+        #self.gamestate = 'show_cards'
+        self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'werewolf2'), ('DadMcDadDad', 'minion')]
-        self.active_roles = ('werewolf1', 'werewolf2')
-
+        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion')]
+        self.active_roles = ['werewolf1', 'werewolf2']
+        
 
 class ReuseHTTPServer(HTTPServer):
     
