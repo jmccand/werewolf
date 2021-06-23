@@ -51,6 +51,8 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.show_cards()
             elif self.path.startswith('/start_night'):
                 return self.start_night()
+            elif self.path.startswith('/add_selected'):
+                return self.add_selected()
                     
     def set_username(self):
         print('set username')
@@ -96,6 +98,10 @@ class MyHandler(SimpleHTTPRequestHandler):
     def get_gamestate(self):
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
+        if myGame.selected == None:
+            myGame.selected = []
+            for entry in myGame.position_username_role[:-3]:
+                myGame.selected.append([])
         self.send_response(200)
         self.end_headers()
         if myGame.gamestate == 'waiting_room':
@@ -105,8 +111,9 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif myGame.gamestate == 'show_cards':
             game_state = {'mode': 'show_cards', 'roles': myGame.position_username_role}
         elif myGame.gamestate == 'night':
-            game_state = {'mode': 'night', 'active_roles': myGame.active_roles}
+            game_state = {'mode': 'night', 'active_roles': myGame.active_roles, 'selected': myGame.selected}
             print(f'active_roles: {myGame.active_roles}')
+            print(f'selected: {myGame.selected}')
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -551,7 +558,7 @@ var player_role_list = %s;
 var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
-var cardsLookedAt = 0;
+var mySelections =[];
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -728,9 +735,8 @@ function werewolfSelect(selected) {
         }
     }
     if (partnerWolf == false) {
-        if ((selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') && cardsLookedAt < 1) {
+        if ((selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') && mySelections.length < 1) {
             reveal(selected);
-            cardsLookedAt++;
         }
     }
 }
@@ -815,9 +821,17 @@ function reveal(element) {
     console.log('revealing ' + element);
     for (var index = 0; index < player_role_list.length; index++) {
         if (player_role_list[index][0] == element.id) {
+            mySelections.push(index);
+            updateAction(index);
             element.src = player_role_list[index][1] + '.jpg';
         }
     }
+}
+
+function updateAction(index) {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/add_selected?id=%s&selected=" + index, true);
+    xhttp.send();
 }
 
 function refreshPage() {
@@ -836,7 +850,7 @@ function refreshPage() {
             }
             else if (response['mode'] == 'night') {
                 if (alreadyRefreshedNight == false) {
-                    alreadyRefreshedNight = true;''' % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID)).encode('utf8'))
+                    alreadyRefreshedNight = true;''' % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID)).encode('utf8'))
         if my_index == 0:
             self.wfile.write('''
                     var child = document.getElementById('start_night_button');
@@ -902,17 +916,32 @@ setTimeout(refreshPage, 1000);
         else:
             return self.handleHomepage(myID)
 
+    def add_selected(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        cookies = SimpleCookie(self.headers.get('Cookie'))
+        username = cookies['username'].value
+        arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
+        if 'selected' in arguments:
+            added = arguments['selected'][0]
+            my_index = None
+            for index, player_role in enumerate(myGame.position_username_role):
+                if player_role[0] == username:
+                    my_index = index
+            myGame.selected[my_index].append(added)
+
 class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], active_roles=None):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], active_roles=None, selected=None):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
         self.selected_roles = selected_roles
         self.position_username_role = position_username_role
         self.active_roles = active_roles
+        self.selected = selected
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
