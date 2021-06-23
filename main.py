@@ -551,6 +551,7 @@ var player_role_list = %s;
 var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
+var cardsLookedAt = 0;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -558,12 +559,7 @@ function drawBoard() {
         var y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
         var x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
         var image = document.createElement('img');
-        if (player == 0) {
-            image.src = player_role_list[my_index][1] + '.jpg'
-        }
-        else {
-            image.src = 'Card Backside.jpg';
-        }
+        image.src = 'Card Backside.jpg';
         image.id = player_role_list[player][0];
         image.width = '71';
         image.height = '100';
@@ -732,9 +728,10 @@ function werewolfSelect(selected) {
         }
     }
     if (partnerWolf == false) {
-        //if (selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') {
+        if ((selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') && cardsLookedAt < 1) {
             reveal(selected);
-        //}
+            cardsLookedAt++;
+        }
     }
 }
 
@@ -833,6 +830,9 @@ function refreshPage() {
             if (firstRefresh) {
                 drawBoard();
                 firstRefresh = false;
+            }
+            if (response['mode'] == 'show_cards') {
+                document.getElementById(player_role_list[my_index][0]).src = player_role_list[my_index][1] + '.jpg';
             }
             else if (response['mode'] == 'night') {
                 if (alreadyRefreshedNight == false) {
