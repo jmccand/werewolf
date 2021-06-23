@@ -235,6 +235,8 @@ function updateRoles(roleList) {
     def load_image(self):
         if self.path.startswith('/werewolf'):
             self.path = '/werewolf.jpg'
+        elif self.path.startswith('/villager'):
+            self.path = '/villager.jpg'
         return SimpleHTTPRequestHandler.do_GET(self)
 
     def handleHomepage(self, invalidId=False):
