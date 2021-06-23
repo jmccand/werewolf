@@ -549,7 +549,6 @@ var player_role_list = %s;
 var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
-var selected;
 function drawBoard() {
     var total_player_number = player_role_list.length;
     for (var player = 0; player < total_player_number; player++) {
@@ -559,11 +558,11 @@ function drawBoard() {
         var image = document.createElement('img');
         if (player == 0) {
             image.src = player_role_list[my_index][1] + '.jpg'
-            image.id = 'my_card';
         }
         else {
             image.src = 'Card Backside.jpg';
         }
+        image.id = player_role_list[player][0];
         image.width = '71';
         image.height = '100';
         image.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
@@ -717,25 +716,107 @@ function werewolf() {
     }
     else {
         doDivTextbox('You are the lone wolf. Select a card in the center to view.');
-        //var thisSelection = selectNext();
-        /*while (thisSelection.indexOf('Center') == -1) {
-            thisSelection = selectNext();
-        }*/
-        
     }
 }
 
-function selectNext() {
-    selected = null;
-    while (selected == null) {
+function werewolfSelect(selected) {
+    console.log('werewolf select function called!');
+    var partnerWolf = false;
+    for (var index = 0; index < player_role_list.length; index++) {
+        if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
+            partnerWolf = player_role_list[index][0];
+        }
     }
-    console.log('selectNext caught ' + selected.src);
-    return selected;
+    if (partnerWolf == false) {
+        //if (selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') {
+            reveal(selected);
+        //}
+    }
 }
 
 function select(element) {
-    selected = element;
+    var selected = element;
     console.log('select got ' + selected);
+    switch (my_role) {
+        case 'alpha wolf':
+            alpha_wolfSelect(selected);
+        case 'mystic wolf':
+            mystic_wolfSelect(selected);
+        case 'werewolf1':
+        case 'werewolf2':
+            werewolfSelect(selected);
+            break;
+        case 'apprentice seer':
+            apprentice_seerSelect(selected);
+            break;
+        case 'bodyguard':
+            bodyguardSelect(selected);
+            break;
+        case 'curator':
+            curatorSelect(selected);
+            break;
+        case 'doppleganger':
+            dopplegangerSelect(selected);
+            break;
+        case 'dream wolf':
+            dream_wolfSelect(selected);
+            break;
+        case 'drunk':
+            drunkSelect(selected);
+            break;
+        case 'hunter':
+            hunterSelect(selected);
+            break;
+        case 'insomniac':
+            insomniacSelect(selected);
+            break;
+        case 'mason1':
+        case 'mason2':
+            masonSelect(selected);
+            break;
+        case 'minion':
+            minionSelect(selected);
+            break;
+        case 'paranormal investigator':
+            paranormal_investigatorSelect(selected);
+            break;
+        case 'revealer':
+            revealerSelect(selected);
+            break;
+        case 'robber':
+            robberSelect(selected);
+            break;
+        case 'seer':
+            seerSelect(selected);
+            break;
+        case 'sentinel':
+            sentinelSelect(selected);
+            break;
+        case 'tanner':
+            tannerSelect(selected);
+            break;
+        case 'troublemaker':
+            troublemakerSelect(selected);
+            break;
+        case 'village idiot':
+            village_idiotSelect(selected);
+            break;
+        case 'villager':
+            villagerSelect(selected);
+            break;
+        case 'witch':
+            witchSelect(selected);
+            break;
+    }
+}
+
+function reveal(element) {
+    console.log('revealing ' + element);
+    for (var index = 0; index < player_role_list.length; index++) {
+        if (player_role_list[index][0] == element.id) {
+            element.src = player_role_list[index][1] + '.jpg';
+        }
+    }
 }
 
 function refreshPage() {
@@ -758,7 +839,7 @@ function refreshPage() {
                     child.parentNode.removeChild(child);
             '''.encode('utf8'))
         self.wfile.write('''
-                    document.getElementById('my_card').src = 'Card Backside.jpg';
+                    document.getElementById(player_role_list[my_index][0]).src = 'Card Backside.jpg';
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         myTurn();
                     }
