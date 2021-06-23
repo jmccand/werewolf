@@ -552,7 +552,7 @@ var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
 function drawBoard() {
-    var total_player_number = player_role_list.length;
+    var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
         var angle = (360.0 / total_player_number) * player - 90;
         var y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
@@ -599,6 +599,7 @@ function drawBoard() {
         x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 80;
         card = document.createElement('img');
         card.src = 'Card Backside.jpg';
+        card.id = 'Center' + (player * 2 + 1);
         card.width = '71';
         card.height = '100';
         card.style.transform = 'rotate(' + (-angle + 180 * player) + 'deg)';
@@ -611,6 +612,7 @@ function drawBoard() {
     }
     var card = document.createElement('img');
     card.src = 'Card Backside.jpg';
+    card.id = 'Center2';
     card.width = '71';
     card.height = '100';
     card.style.transform = 'rotate(' + (centerRotation) + 'deg)';
@@ -932,7 +934,7 @@ class Game:
         self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion')]
+        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion'), ('Center1', 'sentinel'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.active_roles = ['werewolf1', 'werewolf2']
         
 
