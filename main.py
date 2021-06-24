@@ -558,7 +558,7 @@ var player_role_list = %s;
 var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
-var mySelections =[];
+var mySelections = [];
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -861,6 +861,81 @@ function refreshPage() {
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         myTurn();
                     }
+                    var mySelected = response['selected'][my_index]
+                    for (var item = 0; item < mySelected.length; item++) {
+                        var selected = document.getElementById(player_role_list[mySelected[item]][0]);
+                        switch (my_role) {
+                            case 'alpha wolf':
+                                alpha_wolfSelect(selected);
+                            case 'mystic wolf':
+                                mystic_wolfSelect(selected);
+                            case 'werewolf1':
+                            case 'werewolf2':
+                                werewolfSelect(selected);
+                                break;
+                            case 'apprentice seer':
+                                apprentice_seerSelect(selected);
+                                break;
+                            case 'bodyguard':
+                                bodyguardSelect(selected);
+                                break;
+                            case 'curator':
+                                curatorSelect(selected);
+                                break;
+                            case 'doppleganger':
+                                dopplegangerSelect(selected);
+                                break;
+                            case 'dream wolf':
+                                dream_wolfSelect(selected);
+                                break;
+                            case 'drunk':
+                                drunkSelect(selected);
+                                break;
+                            case 'hunter':
+                                hunterSelect(selected);
+                                break;
+                            case 'insomniac':
+                                insomniacSelect(selected);
+                                break;
+                            case 'mason1':
+                            case 'mason2':
+                                masonSelect(selected);
+                                break;
+                            case 'minion':
+                                minionSelect(selected);
+                                break;
+                            case 'paranormal investigator':
+                                paranormal_investigatorSelect(selected);
+                                break;
+                            case 'revealer':
+                                revealerSelect(selected);
+                                break;
+                            case 'robber':
+                                robberSelect(selected);
+                                break;
+                            case 'seer':
+                                seerSelect(selected);
+                                break;
+                            case 'sentinel':
+                                sentinelSelect(selected);
+                                break;
+                            case 'tanner':
+                                tannerSelect(selected);
+                                break;
+                            case 'troublemaker':
+                                troublemakerSelect(selected);
+                                break;
+                            case 'village idiot':
+                                village_idiotSelect(selected);
+                                break;
+                            case 'villager':
+                                villagerSelect(selected);
+                                break;
+                            case 'witch':
+                                witchSelect(selected);
+                                break;
+                        }
+                    }
                 }
             }
         }
@@ -923,7 +998,7 @@ setTimeout(refreshPage, 1000);
         username = cookies['username'].value
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
         if 'selected' in arguments:
-            added = arguments['selected'][0]
+            added = int(arguments['selected'][0])
             my_index = None
             for index, player_role in enumerate(myGame.position_username_role):
                 if player_role[0] == username:
