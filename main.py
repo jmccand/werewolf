@@ -719,7 +719,7 @@ function doDivTextbox(message) {
 function werewolf() {
     console.log('werewolf function called!');
     var partnerWolf = false;
-    for (var index = 0; index < player_role_list.length; index++) {
+    for (var index = 0; index < player_role_list.length - 3; index++) {
         if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
             partnerWolf = player_role_list[index][0];
         }
@@ -735,7 +735,7 @@ function werewolf() {
 function werewolfSelect(selected) {
     console.log('werewolf select function called!');
     var partnerWolf = false;
-    for (var index = 0; index < player_role_list.length; index++) {
+    for (var index = 0; index < player_role_list.length - 3; index++) {
         if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
             partnerWolf = player_role_list[index][0];
         }
@@ -1043,8 +1043,8 @@ class Game:
         self.gamestate = 'show_cards'
         #self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
-        self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion'), ('Center1', 'sentinel'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2']
+        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.active_roles = ['werewolf1', 'werewolf2']
         
 
