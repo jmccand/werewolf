@@ -120,7 +120,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
         myGame.gamestate = 'pick_roles'
-        print(myGame.uuid + ' GAME: MODE SWITCHED TO PICK ROLES')
+        print(str(myGame.uuid) + ' GAME: MODE SWITCHED TO PICK ROLES')
         self.send_response(200)
         self.end_headers()
         self.wfile.write(str('''
@@ -519,6 +519,10 @@ setTimeout(refreshPage, 1000);
                 choice = random.choice(available_roles)
                 myGame.position_username_role.append((player, choice))
                 available_roles.remove(choice)
+            for center in range(1, 4):
+                choice = random.choice(available_roles)
+                myGame.position_username_role.append((f'Center{center}', choice))
+                available_roles.remove(choice)
             myGame.gamestate = 'show_cards'
             self.send_response(302)
             self.send_header('Location', '/show_cards?id=%s' % myID)
@@ -535,6 +539,7 @@ setTimeout(refreshPage, 1000);
         for index, player_role in enumerate(myGame.position_username_role):
             if player_role[0] == username:
                 my_index = index
+                print(f'{username}\'s index is {my_index}, which matches the role {player_role[1]}')
         my_role = myGame.position_username_role[my_index][1]
         self.wfile.write('''
 <html>
@@ -562,10 +567,11 @@ var mySelections = [];
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
-        var angle = (360.0 / total_player_number) * player - 90;
+        var angle = (360.0 / total_player_number) * (player - my_index) - 90;
         var y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
         var x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
         var image = document.createElement('img');
+        console.log('player ' + player + ' is ' + player_role_list[player]);
         image.src = 'Card Backside.jpg';
         image.id = player_role_list[player][0];
         image.width = '71';
@@ -581,7 +587,7 @@ function drawBoard() {
         y *= 13/10;
         x *= 13/10;
         var name = document.createElement('div');
-        name.innerHTML = player_role_list[(player + my_index) %% total_player_number][0];
+        name.innerHTML = player_role_list[player][0];
         name.style.transform = 'rotate(' + (-(angle + 90)) + 'deg)';
         name.style.position = 'fixed';
         name.style.width = '300';
@@ -1034,8 +1040,8 @@ class Game:
 
     def seed_game(self):
         self.uuid = uuid
-        #self.gamestate = 'show_cards'
-        self.gamestate = 'night'
+        self.gamestate = 'show_cards'
+        #self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'sentinel', 'doppelganger', 'villager1', 'villager2']
         self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion'), ('Center1', 'sentinel'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
