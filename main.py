@@ -555,7 +555,7 @@ body {
 <!--<div style = 'position : fixed; height : 1; width : 1; left : 700; top : 360; border : 3px solid #000000'>
 </div>-->'''.encode('utf8'))
         if my_index == 0:
-            self.wfile.write(f'''<button id='start_night_button' type='button' onclick='document.location.href="/start_night?id={myID}"'>Start night</button>'''.encode('utf8'))
+            self.wfile.write(f'''<!--<button id='start_night_button' type='button' onclick='document.location.href="/start_night?id={myID}"'>Start night</button>-->'''.encode('utf8'))
         self.wfile.write(('''
 <script>
 var firstRefresh = true;
@@ -852,16 +852,22 @@ function refreshPage() {
             }
             if (response['mode'] == 'show_cards') {
                 document.getElementById(player_role_list[my_index][0]).src = player_role_list[my_index][1] + '.jpg';
+                if (my_index == 0 && document.getElementById('start_night_button') == null) {
+                    var child = document.createElement('button');
+                    child.id = 'start_night_button';
+                    child.type = 'button';
+                    child.setAttribute('onclick', 'document.location.href="/start_night?id=%s"');
+                    child.innerHTML = 'Start Night';
+                    document.body.appendChild(child);
+                }
             }
             else if (response['mode'] == 'night') {
                 if (alreadyRefreshedNight == false) {
-                    alreadyRefreshedNight = true;''' % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID)).encode('utf8'))
-        if my_index == 0:
-            self.wfile.write('''
+                    alreadyRefreshedNight = true;
                     var child = document.getElementById('start_night_button');
-                    child.parentNode.removeChild(child);
-            '''.encode('utf8'))
-        self.wfile.write('''
+                    if (child != null) {
+                        child.parentNode.removeChild(child);
+                    }
                     document.getElementById(player_role_list[my_index][0]).src = 'Card Backside.jpg';
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         myTurn();
@@ -952,7 +958,7 @@ setTimeout(refreshPage, 1000);
 </script>
 </body>
 </html>
-'''.encode('utf8'))
+'''  % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID, myID)).encode('utf8'))
 
     def start_night(self):
         myID = self.get_game_id()
@@ -1018,8 +1024,10 @@ setTimeout(refreshPage, 1000);
         myGame = Game.running_games[myID]
         cookies = SimpleCookie(self.headers.get('Cookie'))
         username = cookies['username'].value
-        
+
         total_roles = set(['sentinel', 'doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+
+        #select0 won't actually be used, it is only for reference
         select0 = set(['minion', 'mason1', 'mason2', 'insomniac', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
         select1 = set(['sentinel', 'apprentice seer', 'robber', 'village idiot'])
         select2 = set(['witch', 'troublemaker'])
