@@ -571,7 +571,6 @@ function drawBoard() {
         var y = Math.sin((angle / 360.0) * (2 * Math.PI)) * 280;
         var x = Math.cos((angle / 360.0) * (2 * Math.PI)) * 280;
         var image = document.createElement('img');
-        console.log('player ' + player + ' is ' + player_role_list[player]);
         image.src = 'Card Backside.jpg';
         image.id = player_role_list[player][0];
         image.width = '71';
@@ -1010,6 +1009,53 @@ setTimeout(refreshPage, 1000);
                 if player_role[0] == username:
                     my_index = index
             myGame.selected[my_index].append(added)
+            if self.selection_is_done():
+                myGame.selected[my_index].append(True)
+                print(f'selection from {myGame.position_username_role[my_index][0]} AKA {myGame.position_username_role[my_index][1]} is complete.')
+
+    def selection_is_done(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        cookies = SimpleCookie(self.headers.get('Cookie'))
+        username = cookies['username'].value
+        
+        total_roles = set(['sentinel', 'doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+        select0 = set(['minion', 'mason1', 'mason2', 'insomniac', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+        select1 = set(['sentinel', 'apprentice seer', 'robber', 'village idiot'])
+        select2 = set(['witch', 'troublemaker'])
+        depending_roles = set(['doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'seer', 'paranormal investigator'])
+        
+        my_index = None
+        for index, player_role in enumerate(myGame.position_username_role):
+            if player_role[0] == username:
+                my_index = index
+        my_role = myGame.position_username_role[my_index][1]
+        number_selected = len(myGame.selected[my_index])
+        
+        if my_role in depending_roles:
+            if 'wolf' in my_role:
+                partner = False
+                for player, role in myGame.position_username_role[:-3]:
+                    if 'wolf' in role and role != my_role:
+                        partner = True
+                if partner:
+                    select0.add(my_role)
+                else:
+                    select1.add(my_role)
+
+        #assert select0 + select1 + select2 == total_roles 
+        assert select0.intersection(select1) == set()
+        assert select1.intersection(select2) == set()
+        assert select2.intersection(select0) == set()
+
+        if my_role in select0:
+            return number_selected == 0
+        elif my_role in select1:
+            return number_selected == 1
+        elif my_role in select2:
+            return number_selected == 2
+        else:
+            raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
 
 class Game:
 
@@ -1040,11 +1086,11 @@ class Game:
 
     def seed_game(self):
         self.uuid = uuid
-        self.gamestate = 'show_cards'
-        #self.gamestate = 'night'
+        #self.gamestate = 'show_cards'
+        self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'villager1'), ('DadMcDadDad', 'minion'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.position_username_role = [('Jmccand', 'villager1'), ('Safari', 'werewolf1'), ('DadMcDadDad', 'minion'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.active_roles = ['werewolf1', 'werewolf2']
         
 
