@@ -98,12 +98,9 @@ class MyHandler(SimpleHTTPRequestHandler):
     def get_gamestate(self):
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
-        if myGame.selected == None:
-            myGame.selected = []
-            for entry in myGame.position_username_role[:-3]:
-                myGame.selected.append([])
         self.send_response(200)
         self.end_headers()
+        print(f'gamestate: {myGame.gamestate}')
         if myGame.gamestate == 'waiting_room':
             game_state = {'mode': 'waiting_room', 'players': list(myGame.players)}
         elif myGame.gamestate == 'pick_roles':
@@ -963,8 +960,13 @@ setTimeout(refreshPage, 1000);
     def start_night(self):
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
+        myGame.selected = []
+        for entry in myGame.position_username_role[:-3]:
+            myGame.selected.append([])
         myGame.gamestate = 'night'
-        myGame.active_roles = ['werewolf1', 'werewolf2']
+        myGame.active_roles = []
+        myGame.progress_night()
+        myGame.check_completed_section()
         self.send_response(302)
         self.send_header('Location', f'/show_cards?id={myID}')
         self.end_headers()
@@ -1018,7 +1020,8 @@ setTimeout(refreshPage, 1000);
             if self.selection_is_done():
                 myGame.selected[my_index].append(True)
                 print(f'selection from {myGame.position_username_role[my_index][0]} AKA {myGame.position_username_role[my_index][1]} is complete.')
-
+            myGame.check_completed_section()
+                
     def selection_is_done(self):
         myID = self.get_game_id()
         myGame = Game.running_games[myID]
@@ -1065,6 +1068,7 @@ setTimeout(refreshPage, 1000);
         else:
             raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
 
+        
 class Game:
 
     running_games = {}
@@ -1099,9 +1103,52 @@ class Game:
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2']
         self.position_username_role = [('Jmccand', 'villager1'), ('Safari', 'werewolf1'), ('DadMcDadDad', 'minion'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
-        self.active_roles = ['werewolf1', 'werewolf2']
-        
+        self.selected = []
+        for entry in self.position_username_role[:-3]:
+            self.selected.append([])
+        self.active_roles = []
+        self.progress_night()
 
+    def check_completed_section(self):
+        completed_section = True
+        for index, others in enumerate(self.position_username_role[:-3]):
+            print(f'evaluating index {index}, which is {others[0]}')
+            this_selection = self.selected[index]
+            print(f'this selection: {this_selection}')
+            if others[1] in self.active_roles and (len(this_selection) < 2 or this_selection[len(this_selection) - 1] != True):
+                completed_section = False
+        if completed_section:
+            print('progressing night to next stage')
+            self.progress_night()
+            
+    def progress_night(self):
+        #this full night order (one at a time) won't be needed. Virtually, a lot of these roles can go concurrently
+        #night_order = ('sentinel', 'doppelganger', 'werewolf', 'alpha wolf', 'mystic wolf', 'minion', 'mason', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator')
+
+        group1 = set(['sentinel'])
+        group2 = set(['doppelganger', 'werewolf1', 'werewolf2', 'alpha wolf'])
+        group3 = set(['mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk'])
+        group4 = set(['insomniac', 'revealer', 'curator'])
+
+        if self.active_roles == []:
+            self.active_roles = list(group1)
+        elif self.active_roles == list(group1):
+            self.active_roles = list(group2)
+        elif self.active_roles == list(group2):
+            self.active_roles = list(group3)
+        elif self.active_roles == list(group3):
+            self.active_roles = list(group4)
+        elif self.active_roles == list(group4):
+            self.active_roles = []
+        else:
+            raise ValueError(f'when trying to progress the night, the active roles ({self.active_roles}) was not recognized.')
+        
+        if self.active_roles == []:
+            print('NIGHT IS FINISHED!!!!')
+        else:
+            self.check_completed_section()
+
+            
 class ReuseHTTPServer(HTTPServer):
     
     def server_bind(self):
