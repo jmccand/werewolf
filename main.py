@@ -561,6 +561,7 @@ var my_index = %s;
 var my_role;
 var alreadyRefreshedNight = false;
 var mySelections = [];
+var previouslyActive;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -713,7 +714,7 @@ function doDivTextbox(message) {
 }
 
 function werewolf() {
-    console.log('werewolf function called!');
+    //console.log('werewolf function called!');
     var partnerWolf = false;
     for (var index = 0; index < player_role_list.length - 3; index++) {
         if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
@@ -859,6 +860,15 @@ function refreshPage() {
                 }
             }
             else if (response['mode'] == 'night') {
+                console.log('active roles: ' + response['active_roles'] + ' vs previously ' + previouslyActive + ' - ' + (previouslyActive == response['active_roles']));
+                if (previouslyActive == null || previouslyActive[0] != response['active_roles'][0]) {
+                    previouslyActive = response['active_roles'];
+                    if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
+                        console.log('my turn! ' + '- ' + previouslyActive);
+                        myTurn();
+                    }
+
+                }
                 if (alreadyRefreshedNight == false) {
                     alreadyRefreshedNight = true;
                     var child = document.getElementById('start_night_button');
@@ -866,9 +876,6 @@ function refreshPage() {
                         child.parentNode.removeChild(child);
                     }
                     document.getElementById(player_role_list[my_index][0]).src = 'Card Backside.jpg';
-                    if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
-                        myTurn();
-                    }
                     var mySelected = response['selected'][my_index]
                     for (var item = 0; item < mySelected.length; item++) {
                         var selected = document.getElementById(player_role_list[mySelected[item]][0]);
@@ -1102,7 +1109,7 @@ class Game:
         self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'villager1'), ('Safari', 'werewolf1'), ('DadMcDadDad', 'minion'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.selected = []
         for entry in self.position_username_role[:-3]:
             self.selected.append([])
