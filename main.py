@@ -704,6 +704,7 @@ function myTurn() {
             witch();
             break;
     }
+    turnDeployed = true;
 }
 
 function doDivTextbox(message) {
@@ -834,12 +835,14 @@ function reveal(element) {
 }
 
 function endTurn(mySelected) {
-    for (var index = 0; index < mySelected.length; index++) {
-        document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
+    if (turnDeployed) {
+        for (var index = 0; index < mySelected.length; index++) {
+            document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
+        }
+        var textbox = document.getElementById('div_textbox');
+        textbox.parentNode.removeChild(textbox);
+        turnDeployed = false;
     }
-    var textbox = document.getElementById('div_textbox');
-    textbox.parentNode.removeChild(textbox);
-    turnDeployed = false;
 }
 
 function updateAction(index) {
@@ -877,7 +880,6 @@ function refreshPage() {
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         //console.log('my turn! ' + '- ' + previouslyActive);
                         myTurn();
-                        turnDeployed = true;
                     }
                 }
                 var mySelected = response['selected'][my_index]
