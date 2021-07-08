@@ -17,7 +17,7 @@ class MyHandler(SimpleHTTPRequestHandler):
 
         host = self.headers.get('Host')
         print(host)
-        if host != 'werewolf.joelmccandless.com:8000':
+        if False and host != 'werewolf.joelmccandless.com:8000':
             self.send_response(302)
             self.send_header('Location', 'http://werewolf.joelmccandless.com:8000')
             self.end_headers()
@@ -79,7 +79,7 @@ class MyHandler(SimpleHTTPRequestHandler):
     '''.encode('utf8'))
         else:
             self.send_response(302)
-            self.send_header('Set-Cookie', 'username="%s"; domain=werewolf.joelmccandless.com' % username)
+            self.send_header('Set-Cookie', 'username="%s"' % username)
             self.send_header('Location', '/')
             self.end_headers()
 
@@ -87,7 +87,7 @@ class MyHandler(SimpleHTTPRequestHandler):
         print('change username called')
         self.send_response(302)
         print('sending expired cookie...')
-        self.send_header('Set-Cookie', 'username=None; domain=werewolf.joelmccandless.com; expires=Mon, 14 Sep 2020 07:00:00 GMT')
+        self.send_header('Set-Cookie', 'username=None; expires=Mon, 14 Sep 2020 07:00:00 GMT')
         print('expired cookie sent!')
         self.send_header('Location', '/set_username')
         self.end_headers()
@@ -562,7 +562,6 @@ var my_role;
 var alreadyRefreshedNight = false;
 var mySelections = [];
 var previouslyActive;
-var doneMyTurn = false;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -704,7 +703,6 @@ function myTurn() {
             witch();
             break;
     }
-    doneMyTurn = true;
 }
 
 function doDivTextbox(message) {
@@ -869,15 +867,13 @@ function refreshPage() {
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         //console.log('my turn! ' + '- ' + previouslyActive);
                         myTurn();
-                    }
-                    else if (doneMyTurn) {
+                        //setTimeout(3000);
                         var mySelected = response['selected'][my_index];
                         for (var index = 0; index < mySelected.length; index++) {
                             document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
                         }
                         var textbox = document.getElementById('div_textbox');
                         textbox.parentNode.removeChild(textbox);
-                        doneMyTurn = false;
                     }
                 }
                 if (alreadyRefreshedNight == false) {
