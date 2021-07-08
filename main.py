@@ -562,6 +562,7 @@ var my_role;
 var alreadyRefreshedNight = false;
 var mySelections = [];
 var previouslyActive;
+var turnDeployed = false;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -832,6 +833,15 @@ function reveal(element) {
     }
 }
 
+function endTurn(mySelected) {
+    for (var index = 0; index < mySelected.length; index++) {
+        document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
+    }
+    var textbox = document.getElementById('div_textbox');
+    textbox.parentNode.removeChild(textbox);
+    turnDeployed = false;
+}
+
 function updateAction(index) {
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/add_selected?id=%s&selected=" + index, true);
@@ -861,20 +871,19 @@ function refreshPage() {
                 }
             }
             else if (response['mode'] == 'night') {
-                console.log('active roles: ' + response['active_roles'] + ' vs previously ' + previouslyActive + ' - ' + (previouslyActive == response['active_roles']));
+                //console.log('active roles: ' + response['active_roles'] + ' vs previously ' + previouslyActive + ' - ' + (previouslyActive == response['active_roles']));
                 if (previouslyActive == null || previouslyActive[0] != response['active_roles'][0]) {
                     previouslyActive = response['active_roles'];
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
                         //console.log('my turn! ' + '- ' + previouslyActive);
                         myTurn();
-                        //setTimeout(3000);
-                        var mySelected = response['selected'][my_index];
-                        for (var index = 0; index < mySelected.length; index++) {
-                            document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
-                        }
-                        var textbox = document.getElementById('div_textbox');
-                        textbox.parentNode.removeChild(textbox);
+                        turnDeployed = true;
                     }
+                }
+                var mySelected = response['selected'][my_index]
+                if (mySelected[mySelected.length - 1] == true && turnDeployed) {
+                    console.log('my selected: ' + mySelected);
+                    setTimeout(function(){ endTurn(mySelected) }, 4000);
                 }
                 if (alreadyRefreshedNight == false) {
                     alreadyRefreshedNight = true;
@@ -883,7 +892,6 @@ function refreshPage() {
                         child.parentNode.removeChild(child);
                     }
                     document.getElementById(player_role_list[my_index][0]).src = 'Card Backside.jpg';
-                    var mySelected = response['selected'][my_index]
                     for (var item = 0; item < mySelected.length; item++) {
                         var selected = document.getElementById(player_role_list[mySelected[item]][0]);
                         switch (my_role) {
