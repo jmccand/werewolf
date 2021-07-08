@@ -562,6 +562,7 @@ var my_role;
 var alreadyRefreshedNight = false;
 var mySelections = [];
 var previouslyActive;
+var doneMyTurn = false;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -703,10 +704,12 @@ function myTurn() {
             witch();
             break;
     }
+    doneMyTurn = true;
 }
 
 function doDivTextbox(message) {
     var div = document.createElement('div');
+    div.id = 'div_textbox';
     div.innerHTML = 'Awaken ' + my_role + '!<br />' + message;
     div.style = 'position: absolute; top: 20px; left: 40%%; background-color: white; border-style: solid; border-color: red; width: 20%%;';
     div.align = 'center';
@@ -864,10 +867,18 @@ function refreshPage() {
                 if (previouslyActive == null || previouslyActive[0] != response['active_roles'][0]) {
                     previouslyActive = response['active_roles'];
                     if (response['active_roles'].indexOf(player_role_list[my_index][1]) != -1) {
-                        console.log('my turn! ' + '- ' + previouslyActive);
+                        //console.log('my turn! ' + '- ' + previouslyActive);
                         myTurn();
                     }
-
+                    else if (doneMyTurn) {
+                        var mySelected = response['selected'][my_index];
+                        for (var index = 0; index < mySelected.length; index++) {
+                            document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
+                        }
+                        var textbox = document.getElementById('div_textbox');
+                        textbox.parentNode.removeChild(textbox);
+                        doneMyTurn = false;
+                    }
                 }
                 if (alreadyRefreshedNight == false) {
                     alreadyRefreshedNight = true;
