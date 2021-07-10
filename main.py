@@ -733,7 +733,7 @@ function werewolf() {
 }
 
 function werewolfSelect(selected) {
-    console.log('werewolf select function called!');
+    //console.log('werewolf select function called!');
     var partnerWolf = false;
     for (var index = 0; index < player_role_list.length - 3; index++) {
         if ((player_role_list[index][1].indexOf('wolf') != -1) && player_role_list[index][1] != my_role) {
@@ -744,6 +744,28 @@ function werewolfSelect(selected) {
         if ((selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') && mySelections.length < 1) {
             reveal(selected);
         }
+    }
+}
+
+function minion() {
+    var wolves = [];
+    for (var index = 0; index < player_role_list.length - 3; index++) {
+        if (player_role_list[index][1].indexOf('wolf') != -1) {
+            wolves.push(player_role_list[index][0]);
+        }
+    }
+    if (wolves.length == 0) {
+        doDivTextbox('There are no werewolves in play.');
+    }
+    else {
+        var message;
+        if (wolves.length > 1) {
+            message = 'There are ' + wolves.length + ' werewolves in play. They are ' + wolves + '.';
+        }
+        else {
+            message = 'There is ' + wolves.length + ' werewolf in play. They are ' + wolves + '.';
+        }
+        doDivTextbox(message);
     }
 }
 
@@ -1041,57 +1063,10 @@ setTimeout(refreshPage, 1000);
                 if player_role[0] == username:
                     my_index = index
             myGame.selected[my_index].append(added)
-            if self.selection_is_done():
+            if myGame.selection_is_done(my_index):
                 myGame.selected[my_index].append(True)
                 print(f'selection from {myGame.position_username_role[my_index][0]} AKA {myGame.position_username_role[my_index][1]} is complete.')
             myGame.check_completed_section()
-                
-    def selection_is_done(self):
-        myID = self.get_game_id()
-        myGame = Game.running_games[myID]
-        cookies = SimpleCookie(self.headers.get('Cookie'))
-        username = cookies['username'].value
-
-        total_roles = set(['sentinel', 'doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
-
-        #select0 won't actually be used, it is only for reference
-        select0 = set(['minion', 'mason1', 'mason2', 'insomniac', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
-        select1 = set(['sentinel', 'apprentice seer', 'robber', 'village idiot'])
-        select2 = set(['witch', 'troublemaker'])
-        depending_roles = set(['doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'seer', 'paranormal investigator'])
-        
-        my_index = None
-        for index, player_role in enumerate(myGame.position_username_role):
-            if player_role[0] == username:
-                my_index = index
-        my_role = myGame.position_username_role[my_index][1]
-        number_selected = len(myGame.selected[my_index])
-        
-        if my_role in depending_roles:
-            if 'wolf' in my_role:
-                partner = False
-                for player, role in myGame.position_username_role[:-3]:
-                    if 'wolf' in role and role != my_role:
-                        partner = True
-                if partner:
-                    select0.add(my_role)
-                else:
-                    select1.add(my_role)
-
-        #assert select0 + select1 + select2 == total_roles 
-        assert select0.intersection(select1) == set()
-        assert select1.intersection(select2) == set()
-        assert select2.intersection(select0) == set()
-
-        if my_role in select0:
-            return number_selected == 0
-        elif my_role in select1:
-            return number_selected == 1
-        elif my_role in select2:
-            return number_selected == 2
-        else:
-            raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
-
         
 class Game:
 
@@ -1139,7 +1114,7 @@ class Game:
             print(f'evaluating index {index}, which is {others[0]}')
             this_selection = self.selected[index]
             print(f'this selection: {this_selection}')
-            if others[1] in self.active_roles and (len(this_selection) < 2 or this_selection[len(this_selection) - 1] != True):
+            if others[1] in self.active_roles and (len(this_selection) < 1 or this_selection[len(this_selection) - 1] != True):
                 completed_section = False
         if completed_section:
             print('progressing night to next stage')
@@ -1170,9 +1145,55 @@ class Game:
         if self.active_roles == []:
             print('NIGHT IS FINISHED!!!!')
         else:
+            for index, others in enumerate(self.position_username_role[:-3]):
+                if self.selection_is_done(index):
+                    self.selected[index].append(True)
+                    print(f'selection from {self.position_username_role[index][0]} AKA {self.position_username_role[index][1]} is complete.')
             self.check_completed_section()
 
-            
+    def selection_is_done(self, my_index=None):
+        total_roles = set(['sentinel', 'doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+
+        #select0 won't actually be used, it is only for reference
+        select0 = set(['minion', 'mason1', 'mason2', 'insomniac', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+        select1 = set(['sentinel', 'apprentice seer', 'robber', 'village idiot'])
+        select2 = set(['witch', 'troublemaker'])
+        depending_roles = set(['doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'seer', 'paranormal investigator'])
+
+        if my_index == None:
+            for index, player_role in enumerate(self.position_username_role):
+                if player_role[0] == username:
+                    my_index = index
+
+        my_role = self.position_username_role[my_index][1]
+        number_selected = len(self.selected[my_index])
+        
+        if my_role in depending_roles:
+            if 'wolf' in my_role:
+                partner = False
+                for player, role in self.position_username_role[:-3]:
+                    if 'wolf' in role and role != my_role:
+                        partner = True
+                if partner:
+                    select0.add(my_role)
+                else:
+                    select1.add(my_role)
+
+        #assert select0 + select1 + select2 == total_roles 
+        assert select0.intersection(select1) == set()
+        assert select1.intersection(select2) == set()
+        assert select2.intersection(select0) == set()
+
+        if my_role in select0:
+            return number_selected == 0
+        elif my_role in select1:
+            return number_selected == 1
+        elif my_role in select2:
+            return number_selected == 2
+        else:
+            raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
+
+        
 class ReuseHTTPServer(HTTPServer):
     
     def server_bind(self):
