@@ -767,6 +767,7 @@ function minion() {
         }
         doDivTextbox(message);
     }
+    updateAction(-1);
 }
 
 function select(element) {
@@ -1062,7 +1063,8 @@ setTimeout(refreshPage, 1000);
             for index, player_role in enumerate(myGame.position_username_role):
                 if player_role[0] == username:
                     my_index = index
-            myGame.selected[my_index].append(added)
+            if added != -1:
+                myGame.selected[my_index].append(added)
             if myGame.selection_is_done(my_index):
                 myGame.selected[my_index].append(True)
                 print(f'selection from {myGame.position_username_role[my_index][0]} AKA {myGame.position_username_role[my_index][1]} is complete.')
@@ -1146,7 +1148,7 @@ class Game:
             print('NIGHT IS FINISHED!!!!')
         else:
             for index, others in enumerate(self.position_username_role[:-3]):
-                if self.selection_is_done(index):
+                if self.position_username_role[index] in active_roles:
                     self.selected[index].append(True)
                     print(f'selection from {self.position_username_role[index][0]} AKA {self.position_username_role[index][1]} is complete.')
             self.check_completed_section()
