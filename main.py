@@ -803,16 +803,6 @@ function select(element) {
         case 'hunter':
             hunterSelect(selected);
             break;
-        case 'insomniac':
-            insomniacSelect(selected);
-            break;
-        case 'mason1':
-        case 'mason2':
-            masonSelect(selected);
-            break;
-        case 'minion':
-            minionSelect(selected);
-            break;
         case 'paranormal investigator':
             paranormal_investigatorSelect(selected);
             break;
@@ -828,17 +818,11 @@ function select(element) {
         case 'sentinel':
             sentinelSelect(selected);
             break;
-        case 'tanner':
-            tannerSelect(selected);
-            break;
         case 'troublemaker':
             troublemakerSelect(selected);
             break;
         case 'village idiot':
             village_idiotSelect(selected);
-            break;
-        case 'villager':
-            villagerSelect(selected);
             break;
         case 'witch':
             witchSelect(selected);
@@ -949,16 +933,6 @@ function refreshPage() {
                             case 'hunter':
                                 hunterSelect(selected);
                                 break;
-                            case 'insomniac':
-                                insomniacSelect(selected);
-                                break;
-                            case 'mason1':
-                            case 'mason2':
-                                masonSelect(selected);
-                                break;
-                            case 'minion':
-                                minionSelect(selected);
-                                break;
                             case 'paranormal investigator':
                                 paranormal_investigatorSelect(selected);
                                 break;
@@ -974,17 +948,11 @@ function refreshPage() {
                             case 'sentinel':
                                 sentinelSelect(selected);
                                 break;
-                            case 'tanner':
-                                tannerSelect(selected);
-                                break;
                             case 'troublemaker':
                                 troublemakerSelect(selected);
                                 break;
                             case 'village idiot':
                                 village_idiotSelect(selected);
-                                break;
-                            case 'villager':
-                                villagerSelect(selected);
                                 break;
                             case 'witch':
                                 witchSelect(selected);
