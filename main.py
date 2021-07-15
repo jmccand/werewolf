@@ -858,14 +858,14 @@ function reveal(element) {
 }
 
 function endTurn(mySelected) {
-    if (turnDeployed) {
-        for (var index = 0; index < mySelected.length; index++) {
+    for (var index = 0; index < mySelected.length; index++) {
+        if (typeof(mySelected[index]) == 'number') {
             document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
         }
-        var textbox = document.getElementById('div_textbox');
-        textbox.parentNode.removeChild(textbox);
-        turnDeployed = false;
     }
+    var textbox = document.getElementById('div_textbox');
+    textbox.parentNode.removeChild(textbox);
+    turnDeployed = false;
 }
 
 function updateAction(index) {
@@ -907,8 +907,8 @@ function refreshPage() {
                 }
                 var mySelected = response['selected'][my_index]
                 if (mySelected[mySelected.length - 1] == true && turnDeployed) {
-                    console.log('my selected: ' + mySelected);
-                    setTimeout(function(){ endTurn(mySelected) }, 4000);
+                    //console.log('my selected: ' + mySelected);
+                    setTimeout(function(){ if (turnDeployed) { endTurn(mySelected) } }, 5000);
                 }
                 if (alreadyRefreshedNight == false) {
                     alreadyRefreshedNight = true;
@@ -1194,7 +1194,6 @@ class Game:
             return number_selected == 2
         else:
             raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
-
         
 class ReuseHTTPServer(HTTPServer):
     
