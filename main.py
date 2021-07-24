@@ -743,6 +743,12 @@ function werewolfSelect(selected) {
     if (partnerWolf == false) {
         if ((selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') && mySelections.length < 1) {
             reveal(selected);
+            for (var index = 0; index < player_role_list.length; index++) {
+                if (player_role_list[index][0] == selected.id) {
+                    mySelections.push(index);
+                    updateAction(index);
+                }
+            }
         }
     }
 }
@@ -768,6 +774,22 @@ function minion() {
         doDivTextbox(message);
     }
     updateAction(-1);
+}
+
+function troublemaker() {
+    doDivTextbox('Choose two players to switch their roles. You do not get to see their roles.');
+}
+
+function troublemakerSelect(selected) {
+    if (mySelections.length < 2) {
+        for (var index = 0; index < player_role_list.length; index++) {
+            if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
+                mySelections.push(index);
+                updateAction(index);
+                console.log('pushed ' + index);
+            }
+        }
+    }
 }
 
 function select(element) {
@@ -835,7 +857,6 @@ function reveal(element) {
     for (var index = 0; index < player_role_list.length; index++) {
         if (player_role_list[index][0] == element.id) {
             mySelections.push(index);
-            updateAction(index);
             element.src = player_role_list[index][1] + '.jpg';
         }
     }
@@ -1069,12 +1090,17 @@ class Game:
         self.uuid = uuid
         #self.gamestate = 'show_cards'
         self.gamestate = 'night'
-        self.players = ['Jmccand', 'Safari', 'DadMcDadDad']
-        self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2']
-        self.position_username_role = [('Jmccand', 'werewolf1'), ('Safari', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'rando1', 'rando2']
+        self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'troublemaker', 'witch']
+        self.position_username_role = [('Jmccand', 'troublemaker'), ('Safari', 'witch'), ('rando1', 'werewolf1'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.selected = []
         for entry in self.position_username_role[:-3]:
             self.selected.append([])
+            
+        self.selected[2].append(4)
+        self.selected[2].append(True)
+        self.selected[3].append(True)
+        
         self.active_roles = []
         self.progress_night()
 
