@@ -783,11 +783,13 @@ function troublemaker() {
 }
 
 function troublemakerSelect(selected) {
-    if (mySelections.length < 2) {
-        for (var index = 0; index < player_role_list.length; index++) {
-            if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
-                mySelections.push(index);
-                updateAction(index);
+    if (!(selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3')) {
+        if (mySelections.length < 2) {
+            for (var index = 0; index < player_role_list.length; index++) {
+                if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
+                    mySelections.push(index);
+                    updateAction(index);
+                }
             }
         }
     }
