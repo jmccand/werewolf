@@ -53,6 +53,8 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.start_night()
             elif self.path.startswith('/add_selected'):
                 return self.add_selected()
+            else:
+                raise RuntimeError(f'got a path from {self.path}')
                     
     def set_username(self):
         print('set username')
@@ -786,7 +788,36 @@ function troublemakerSelect(selected) {
             if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
                 mySelections.push(index);
                 updateAction(index);
-                console.log('pushed ' + index);
+            }
+        }
+    }
+}
+
+function witch() {
+    doDivTextbox('Choose a center card to view. Then, choose a player to give that card to.');
+}
+
+function witchSelect(selected) {
+    if (mySelections.length < 1) {
+        if (selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') {
+            for (var index = 0; index < player_role_list.length; index++) {
+                if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
+                    mySelections.push(index);
+                    reveal(selected);
+                    updateAction(index);
+                    console.log('1st selection: pushed ' + index);
+                }
+            }
+        }
+    }
+    else if (mySelections.length < 2) {
+        if (!(selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3')) {
+            for (var index = 0; index < player_role_list.length; index++) {
+                if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
+                    mySelections.push(index);
+                    updateAction(index);
+                    console.log('2nd selection pushed ' + index);
+                }
             }
         }
     }
@@ -874,6 +905,7 @@ function endTurn(mySelected) {
 }
 
 function updateAction(index) {
+    console.log('updating action on index ' + index);
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/add_selected?id=%s&selected=" + index, true);
     xhttp.send();
@@ -1047,6 +1079,8 @@ setTimeout(refreshPage, 1000);
         username = cookies['username'].value
         arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
         if 'selected' in arguments:
+            self.send_response(200)
+            self.end_headers()
             added = int(arguments['selected'][0])
             my_index = None
             for index, player_role in enumerate(myGame.position_username_role):
@@ -1092,7 +1126,7 @@ class Game:
         self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'rando1', 'rando2']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'troublemaker', 'witch']
-        self.position_username_role = [('Jmccand', 'troublemaker'), ('Safari', 'witch'), ('rando1', 'werewolf1'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.position_username_role = [('Safari', 'witch'), ('Jmccand', 'troublemaker'), ('rando1', 'werewolf1'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.selected = []
         for entry in self.position_username_role[:-3]:
             self.selected.append([])
