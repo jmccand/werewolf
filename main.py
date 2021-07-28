@@ -747,8 +747,7 @@ function werewolfSelect(selected) {
             reveal(selected);
             for (var index = 0; index < player_role_list.length; index++) {
                 if (player_role_list[index][0] == selected.id) {
-                    mySelections.push(index);
-                    updateAction(index);
+                    return true;
                 }
             }
         }
@@ -787,8 +786,7 @@ function troublemakerSelect(selected) {
         if (mySelections.length < 2) {
             for (var index = 0; index < player_role_list.length; index++) {
                 if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
-                    mySelections.push(index);
-                    updateAction(index);
+                    return true;
                 }
             }
         }
@@ -804,10 +802,9 @@ function witchSelect(selected) {
         if (selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3') {
             for (var index = 0; index < player_role_list.length; index++) {
                 if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
-                    mySelections.push(index);
                     reveal(selected);
-                    updateAction(index);
                     console.log('1st selection: pushed ' + index);
+                    return true;
                 }
             }
         }
@@ -816,9 +813,8 @@ function witchSelect(selected) {
         if (!(selected.id == 'Center1' || selected.id == 'Center2' || selected.id == 'Center3')) {
             for (var index = 0; index < player_role_list.length; index++) {
                 if (player_role_list[index][0] == selected.id && mySelections.indexOf(index) == -1) {
-                    mySelections.push(index);
-                    updateAction(index);
                     console.log('2nd selection pushed ' + index);
+                    return true;
                 }
             }
         }
@@ -828,60 +824,68 @@ function witchSelect(selected) {
 function select(element) {
     var selected = element;
     console.log('select got ' + selected);
+    var update = false;
     switch (my_role) {
         case 'alpha wolf':
-            alpha_wolfSelect(selected);
+            update = alpha_wolfSelect(selected);
         case 'mystic wolf':
-            mystic_wolfSelect(selected);
+            update = mystic_wolfSelect(selected);
         case 'werewolf1':
         case 'werewolf2':
-            werewolfSelect(selected);
+            update = werewolfSelect(selected);
             break;
         case 'apprentice seer':
-            apprentice_seerSelect(selected);
+            update = apprentice_seerSelect(selected);
             break;
         case 'bodyguard':
-            bodyguardSelect(selected);
+            update = bodyguardSelect(selected);
             break;
         case 'curator':
-            curatorSelect(selected);
+            update = curatorSelect(selected);
             break;
         case 'doppleganger':
-            dopplegangerSelect(selected);
+            update = dopplegangerSelect(selected);
             break;
         case 'dream wolf':
-            dream_wolfSelect(selected);
+            update = dream_wolfSelect(selected);
             break;
         case 'drunk':
-            drunkSelect(selected);
+            update = drunkSelect(selected);
             break;
         case 'hunter':
-            hunterSelect(selected);
+            update = hunterSelect(selected);
             break;
         case 'paranormal investigator':
-            paranormal_investigatorSelect(selected);
+            update = paranormal_investigatorSelect(selected);
             break;
         case 'revealer':
-            revealerSelect(selected);
+            update = revealerSelect(selected);
             break;
         case 'robber':
-            robberSelect(selected);
+            update = robberSelect(selected);
             break;
         case 'seer':
-            seerSelect(selected);
+            update = seerSelect(selected);
             break;
         case 'sentinel':
-            sentinelSelect(selected);
+            update = sentinelSelect(selected);
             break;
         case 'troublemaker':
-            troublemakerSelect(selected);
+            update = troublemakerSelect(selected);
             break;
         case 'village idiot':
-            village_idiotSelect(selected);
+            update = village_idiotSelect(selected);
             break;
         case 'witch':
-            witchSelect(selected);
+            update = witchSelect(selected);
             break;
+    }
+    if (update) {
+        for (var index = 0; index < player_role_list.length; index++) {
+            if (player_role_list[index][0] == selected.id) {
+                updateAction(index);
+            }
+        }
     }
 }
 
@@ -908,6 +912,7 @@ function endTurn(mySelected) {
 
 function updateAction(index) {
     console.log('updating action on index ' + index);
+    mySelections.push(index);
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", "/add_selected?id=%s&selected=" + index, true);
     xhttp.send();
