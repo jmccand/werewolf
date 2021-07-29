@@ -53,6 +53,9 @@ class MyHandler(SimpleHTTPRequestHandler):
                 return self.start_night()
             elif self.path.startswith('/add_selected'):
                 return self.add_selected()
+            elif self.path == '/favicon.ico':
+                self.path = '/Card Backside.ico'
+                return self.load_image()
             else:
                 raise RuntimeError(f'got a path from {self.path}')
                     
