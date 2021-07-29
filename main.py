@@ -1102,6 +1102,8 @@ setTimeout(refreshPage, 1000);
             for index, player_role in enumerate(myGame.position_username_role):
                 if player_role[0] == username:
                     my_index = index
+            if len(myGame.selected[my_index]) > 0 and myGame.selected[my_index][-1] == True:
+                raise RuntimeError(f'{username} just tried to send extra roles. Uh oh!')
             if added != -1:
                 myGame.selected[my_index].append(added)
             if myGame.selection_is_done(my_index):
