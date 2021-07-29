@@ -110,9 +110,14 @@ class MyHandler(SimpleHTTPRequestHandler):
         elif myGame.gamestate == 'show_cards':
             game_state = {'mode': 'show_cards', 'roles': myGame.position_username_role}
         elif myGame.gamestate == 'night':
+            #new_selected = myGame.selected[:]
+            #for index, player in enumerate(myGame.selected):
+                #if len(player) > 0 and player[-1] == True:
+                    #new_selected[index] = player[:-1]
             game_state = {'mode': 'night', 'active_roles': myGame.active_roles, 'selected': myGame.selected}
             print(f'active_roles: {myGame.active_roles}')
             print(f'selected: {myGame.selected}')
+            #print(f'new selected: {new_selected}')
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -950,12 +955,16 @@ function refreshPage() {
                     }
                 }
                 var mySelected = response['selected'][my_index]
-                if (mySelected[mySelected.length - 1] == true && turnDeployed) {
-                    //console.log('my selected: ' + mySelected);
-                    setTimeout(function(){ if (turnDeployed) { endTurn(mySelected) } }, 5000);
+                if (mySelected[mySelected.length - 1] == true) {
+                    mySelected.pop();
+                    if (turnDeployed) {
+                        //console.log('my selected: ' + mySelected);
+                        setTimeout(function(){ if (turnDeployed) { endTurn(mySelected) } }, 5000);
+                    }
                 }
                 if (alreadyRefreshedNight == false) {
                     alreadyRefreshedNight = true;
+                    mySelections = mySelected;
                     var child = document.getElementById('start_night_button');
                     if (child != null) {
                         child.parentNode.removeChild(child);
