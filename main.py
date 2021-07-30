@@ -912,9 +912,7 @@ function reveal(element) {
 
 function endTurn(mySelected) {
     for (var index = 0; index < mySelected.length; index++) {
-        if (typeof(mySelected[index]) == 'number') {
-            document.getElementById(player_role_list[mySelected[my_index]][0]).src = 'Card Backside.jpg';
-        }
+        document.getElementById(player_role_list[mySelected[index]][0]).src = 'Card Backside.jpg';
     }
     var textbox = document.getElementById('div_textbox');
     textbox.parentNode.removeChild(textbox);
