@@ -1148,7 +1148,7 @@ class Game:
         self.gamestate = 'night'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
-        self.position_username_role = [('Safari', 'troublemaker'), ('Jmccand', 'witch'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
         self.selected = []
         for entry in self.position_username_role[:-3]:
             self.selected.append([])
