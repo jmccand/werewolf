@@ -7,6 +7,10 @@ from http.cookies import SimpleCookie
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 import json
 import uuid
+from datetime import datetime
+import _thread
+import time
+import math
 
 class MyHandler(SimpleHTTPRequestHandler):
 
@@ -121,6 +125,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             print(f'active_roles: {myGame.active_roles}')
             print(f'selected: {myGame.selected}')
             #print(f'new selected: {new_selected}')
+        elif myGame.gamestate == 'day':
+            game_state = {'mode': 'day', 'time': math.floor(myGame.day_length - (datetime.now() - myGame.day_start).total_seconds())}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -555,6 +561,11 @@ setTimeout(refreshPage, 1000);
 <style>
 body {
     background-image : url('Table.jpg');
+}
+#clock {
+    color: red;
+    font-size: 50px;
+    font-weight: bold;
 }
 </style>
 </head>
@@ -1034,6 +1045,17 @@ function refreshPage() {
                     }
                 }
             }
+            else if (response['mode'] == 'day') {
+                if (turnDeployed) {
+                    endTurn(mySelections);
+                }
+                if (document.getElementById('clock') == null) {
+                    var element = document.createElement('div');
+                    element.id = 'clock';
+                    document.body.appendChild(element);
+                }
+                document.getElementById('clock').innerHTML = response['time'];
+            }
         }
     }
     setTimeout(refreshPage, 1000);
@@ -1119,14 +1141,16 @@ class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], active_roles=None, selected=None):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], day_length=5*60, active_roles=None, selected=None, day_start=None):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
         self.selected_roles = selected_roles
         self.position_username_role = position_username_role
+        self.day_length = day_length
         self.active_roles = active_roles
         self.selected = selected
+        self.day_start = day_start
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
@@ -1145,18 +1169,26 @@ class Game:
     def seed_game(self):
         self.uuid = uuid
         #self.gamestate = 'show_cards'
-        self.gamestate = 'night'
+
+        self.gamestate = 'day'
         self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
         self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
         self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
-        self.selected = []
-        for entry in self.position_username_role[:-3]:
-            self.selected.append([])
-            
-        self.selected[4].append(True)
+        self.selected = [[8], [5, 4, True], [7, True], [], [True], []]
+        self.day_start = datetime.now()
         
-        self.active_roles = []
-        self.progress_night()
+        #self.gamestate = 'night'
+        #self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
+        #self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
+        #self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+        #self.selected = []
+        #for entry in self.position_username_role[:-3]:
+            #self.selected.append([])
+            
+        #self.selected[4].append(True)
+        
+        #self.active_roles = []
+        #self.progress_night()
 
     def check_completed_section(self):
         completed_section = True
@@ -1194,6 +1226,7 @@ class Game:
         
         if self.active_roles == []:
             print('NIGHT IS FINISHED!!!!')
+            _thread.start_new_thread(self.change_to_day())
         else:
             for index, others in enumerate(self.position_username_role[:-3]):
                 if self.position_username_role[index] in active_roles:
@@ -1242,6 +1275,11 @@ class Game:
             return number_selected == 2
         else:
             raise ValueError('the role that selected has not been placed in a select1, select2, or select3 set')
+
+    def change_to_day(self):
+        time.sleep(5)
+        self.gamestate = 'day'
+        self.day_start = datetime.now()
         
 class ReuseHTTPServer(HTTPServer):
     
