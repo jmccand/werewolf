@@ -60,6 +60,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             elif self.path == '/favicon.ico':
                 self.path = '/Card Backside.ico'
                 return self.load_image()
+            elif self.path.startswith('/vote'):
+                return self.vote()
             else:
                 raise RuntimeError(f'got a path from {self.path}')
                     
@@ -584,6 +586,8 @@ var alreadyRefreshedNight = false;
 var mySelections = [];
 var previouslyActive;
 var turnDeployed = false;
+var isDay = false;
+var myVote;
 function drawBoard() {
     var total_player_number = player_role_list.length - 3;
     for (var player = 0; player < total_player_number; player++) {
@@ -847,66 +851,71 @@ function witchSelect(selected) {
 function select(element) {
     var selected = element;
     console.log('select got ' + selected);
-    var update = false;
-    switch (my_role) {
-        case 'alpha wolf':
-            update = alpha_wolfSelect(selected);
-        case 'mystic wolf':
-            update = mystic_wolfSelect(selected);
-        case 'werewolf1':
-        case 'werewolf2':
-            update = werewolfSelect(selected);
-            break;
-        case 'apprentice seer':
-            update = apprentice_seerSelect(selected);
-            break;
-        case 'bodyguard':
-            update = bodyguardSelect(selected);
-            break;
-        case 'curator':
-            update = curatorSelect(selected);
-            break;
-        case 'doppleganger':
-            update = dopplegangerSelect(selected);
-            break;
-        case 'dream wolf':
-            update = dream_wolfSelect(selected);
-            break;
-        case 'drunk':
-            update = drunkSelect(selected);
-            break;
-        case 'hunter':
-            update = hunterSelect(selected);
-            break;
-        case 'paranormal investigator':
-            update = paranormal_investigatorSelect(selected);
-            break;
-        case 'revealer':
-            update = revealerSelect(selected);
-            break;
-        case 'robber':
-            update = robberSelect(selected);
-            break;
-        case 'seer':
-            update = seerSelect(selected);
-            break;
-        case 'sentinel':
-            update = sentinelSelect(selected);
-            break;
-        case 'troublemaker':
-            update = troublemakerSelect(selected);
-            break;
-        case 'village idiot':
-            update = village_idiotSelect(selected);
-            break;
-        case 'witch':
-            update = witchSelect(selected);
-            break;
+    if (isDay) {
+        vote(element);
     }
-    if (update) {
-        for (var index = 0; index < player_role_list.length; index++) {
-            if (player_role_list[index][0] == selected.id) {
-                updateAction(index);
+    else {
+        var update = false;
+        switch (my_role) {
+            case 'alpha wolf':
+                update = alpha_wolfSelect(selected);
+            case 'mystic wolf':
+                update = mystic_wolfSelect(selected);
+            case 'werewolf1':
+            case 'werewolf2':
+                update = werewolfSelect(selected);
+                break;
+            case 'apprentice seer':
+                update = apprentice_seerSelect(selected);
+                break;
+            case 'bodyguard':
+                update = bodyguardSelect(selected);
+                break;
+            case 'curator':
+                update = curatorSelect(selected);
+                break;
+            case 'doppleganger':
+                update = dopplegangerSelect(selected);
+                break;
+            case 'dream wolf':
+                update = dream_wolfSelect(selected);
+                break;
+            case 'drunk':
+                update = drunkSelect(selected);
+                break;
+            case 'hunter':
+                update = hunterSelect(selected);
+                break;
+            case 'paranormal investigator':
+                update = paranormal_investigatorSelect(selected);
+                break;
+            case 'revealer':
+                update = revealerSelect(selected);
+                break;
+            case 'robber':
+                update = robberSelect(selected);
+                break;
+            case 'seer':
+                update = seerSelect(selected);
+                break;
+            case 'sentinel':
+                update = sentinelSelect(selected);
+                break;
+            case 'troublemaker':
+                update = troublemakerSelect(selected);
+                break;
+            case 'village idiot':
+                update = village_idiotSelect(selected);
+                break;
+            case 'witch':
+                update = witchSelect(selected);
+                break;
+        }
+        if (update) {
+            for (var index = 0; index < player_role_list.length; index++) {
+                if (player_role_list[index][0] == selected.id) {
+                    updateAction(index);
+                }
             }
         }
     }
@@ -1046,6 +1055,9 @@ function refreshPage() {
                 }
             }
             else if (response['mode'] == 'day') {
+                if (!isDay) {
+                    isDay = true;
+                }
                 if (turnDeployed) {
                     endTurn(mySelections);
                 }
@@ -1062,10 +1074,20 @@ function refreshPage() {
 }
 setTimeout(refreshPage, 1000);
 
+function vote(element) {
+    if (myVote != null) {
+        myVote.style.border = '0px solid red';
+    }
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "/vote?id=%s&for=" + element.id, true);
+    xhttp.send();
+    element.style.border = '4px solid red';
+    myVote = element;
+}
 </script>
 </body>
 </html>
-'''  % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID, myID)).encode('utf8'))
+'''  % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID, myID, myID)).encode('utf8'))
 
     def start_night(self):
         myID = self.get_game_id()
@@ -1136,12 +1158,36 @@ setTimeout(refreshPage, 1000);
                 myGame.selected[my_index].append(True)
                 print(f'selection from {myGame.position_username_role[my_index][0]} AKA {myGame.position_username_role[my_index][1]} is complete.')
             myGame.check_completed_section()
+
+    def vote(self):
+        myID = self.get_game_id()
+        myGame = Game.running_games[myID]
+        cookies = SimpleCookie(self.headers.get('Cookie'))
+        username = cookies['username'].value
+        arguments = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query, keep_blank_values=True)
+        if len(myGame.votes) != len(myGame.position_username_role) - 3:
+            myGame.votes = []
+            for player in myGame.position_username_role[:-3]:
+                myGame.votes.append(None)
+        if 'for' in arguments:
+            for index, values in enumerate(myGame.position_username_role[:-3]):
+                if values[0] == username:
+                    myGame.votes[index] = arguments['for'][0]
+            self.send_response(200)
+            self.end_headers()
+
+            for vote in myGame.votes:
+                if vote == None:
+                    break
+            else:
+                print('VOTING IS FINISHED!!!')
+                myGame.gamestate = 'conclusion'
         
 class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], day_length=5*60, active_roles=None, selected=None, day_start=None):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], day_length=5*60, active_roles=None, selected=None, day_start=None, votes=[]):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
@@ -1151,6 +1197,7 @@ class Game:
         self.active_roles = active_roles
         self.selected = selected
         self.day_start = day_start
+        self.votes = votes
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
@@ -1167,28 +1214,34 @@ class Game:
             return False
 
     def seed_game(self):
-        self.uuid = uuid
-        #self.gamestate = 'show_cards'
+        choice = 0
+        if choice == 0:
+            self.gamestate = 'day'
+            self.players = ['Jmccand', 'Safari', 'Firefox']
+            self.selected_roles = ['werewolf1', 'troublemaker', 'witch', 'werewolf2', 'doppelganger', 'villager2']
+            self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+            self.selected = [[8, 5, True], [5, 4, True], [7, True]]
+            self.day_start = datetime.now()
+        elif choice == 1:
+            self.gamestate = 'day'
+            self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
+            self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
+            self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+            self.selected = [[8, 5, True], [5, 4, True], [7, True], [], [True], []]
+            self.day_start = datetime.now()
+        else:
+            self.gamestate = 'night'
+            self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
+            self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
+            self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
+            self.selected = []
+            for entry in self.position_username_role[:-3]:
+                self.selected.append([])
 
-        self.gamestate = 'day'
-        self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
-        self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
-        self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
-        self.selected = [[8], [5, 4, True], [7, True], [], [True], []]
-        self.day_start = datetime.now()
-        
-        #self.gamestate = 'night'
-        #self.players = ['Jmccand', 'Safari', 'DadMcDadDad', 'Firefox', 'rando1', 'rando2']
-        #self.selected_roles = ['werewolf1', 'minion', 'werewolf2', 'doppelganger', 'villager1', 'villager2', 'villager3', 'troublemaker', 'witch']
-        #self.position_username_role = [('Jmccand', 'witch'), ('Safari', 'troublemaker'), ('Firefox', 'werewolf1'), ('rando1', 'villager3'), ('rando2', 'minion'), ('DadMcDadDad', 'villager1'), ('Center1', 'werewolf2'), ('Center2', 'doppelganger'), ('Center3', 'villager2')]
-        #self.selected = []
-        #for entry in self.position_username_role[:-3]:
-            #self.selected.append([])
-            
-        #self.selected[4].append(True)
-        
-        #self.active_roles = []
-        #self.progress_night()
+            self.selected[4].append(True)
+
+            self.active_roles = []
+            self.progress_night()
 
     def check_completed_section(self):
         completed_section = True
