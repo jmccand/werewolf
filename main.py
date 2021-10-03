@@ -129,6 +129,8 @@ class MyHandler(SimpleHTTPRequestHandler):
             #print(f'new selected: {new_selected}')
         elif myGame.gamestate == 'day':
             game_state = {'mode': 'day', 'time': math.floor(myGame.day_length - (datetime.now() - myGame.day_start).total_seconds())}
+        elif myGame.gamestate == 'conclusion':
+            game_state = {'mode': 'conclusion', 'winners': myGame.winners}
         self.wfile.write(json.dumps(game_state).encode('utf8'))
 
     def pick_roles(self):
@@ -1068,6 +1070,15 @@ function refreshPage() {
                 }
                 document.getElementById('clock').innerHTML = response['time'];
             }
+            else if (response['mode'] == 'conclusion') {
+                var winner = false;
+                for (var index = 0; index < response['winners'].length; index++) {
+                    if (response['winners'][index] == my_role) {
+                        console.log('you are a winner!');
+                        winner = true;
+                    }
+                }
+            }
         }
     }
     setTimeout(refreshPage, 1000);
@@ -1075,14 +1086,16 @@ function refreshPage() {
 setTimeout(refreshPage, 1000);
 
 function vote(element) {
-    if (myVote != null) {
-        myVote.style.border = '0px solid red';
+    if (!(element.id == 'Center1' || element.id == 'Center2' || element.id == 'Center3')) {
+        if (myVote != null) {
+            myVote.style.border = '0px solid red';
+        }
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("GET", "/vote?id=%s&for=" + element.id, true);
+        xhttp.send();
+        element.style.border = '4px solid red';
+        myVote = element;
     }
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "/vote?id=%s&for=" + element.id, true);
-    xhttp.send();
-    element.style.border = '4px solid red';
-    myVote = element;
 }
 </script>
 </body>
@@ -1182,12 +1195,13 @@ function vote(element) {
             else:
                 print('VOTING IS FINISHED!!!')
                 myGame.gamestate = 'conclusion'
+                myGame.calculate_winners()
         
 class Game:
 
     running_games = {}
 
-    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], day_length=5*60, active_roles=None, selected=None, day_start=None, votes=[]):
+    def __init__(self, uuid, gamestate, players=[], selected_roles=[], position_username_role=[], day_length=5*60, active_roles=None, selected=None, day_start=None, votes=[], winners=[]):
         self.uuid = uuid
         self.gamestate = gamestate
         self.players = players
@@ -1198,6 +1212,7 @@ class Game:
         self.selected = selected
         self.day_start = day_start
         self.votes = votes
+        self.winners = winners
 
     def newGame(uuid):
         Game.running_games[uuid] = Game(uuid, 'waiting_room')
@@ -1333,7 +1348,43 @@ class Game:
         time.sleep(5)
         self.gamestate = 'day'
         self.day_start = datetime.now()
+
+    def calculate_winners(self):
+        total_tally = {}
+        for vote in self.votes:
+            if vote in total_tally:
+                total_tally[vote] += 1
+            else:
+                total_tally[vote] = 1
+
+        max_votes = 0
+        voted = []
+        for key, value in total_tally.items():
+            if value > max_votes:
+                voted = [key]
+            elif value == max_votes:
+                voted.append(key)
+
+        #total_roles = set(['sentinel', 'doppleganger', 'werewolf1', 'werewolf2', 'alpha wolf', 'mystic wolf', 'minion', 'mason1', 'mason2', 'seer', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager1', 'villager2', 'villager3', 'hunter', 'tanner', 'dream wolf', 'bodyguard'])
+
+        werewolves = set(['werewolf1', 'werewolf2', 'mystic wolf', 'alpha wolf', 'dream wolf'])
+        villagers = set(['sentinel', 'mason1', 'mason2', 'seer', 'villager1', 'apprentice seer', 'paranormal investigator', 'robber', 'witch', 'troublemaker', 'village idiot', 'drunk', 'insomniac', 'revealer', 'curator', 'villager2', 'villager3', 'hunter', 'bodyguard'])
+
+        if 'tanner' in voted:
+            self.winners = 'tanner'
+            print('tanner won!')
+        else:
+            for player in voted:
+                if player in werewolves:
+                    self.winners = list(villagers)
+                    print('villagers won!')
+                    break
+            if self.winners == []:
+                self.winners = list(werewolves) + ['minion']
+                print('werewolves won!')
         
+            
+            
 class ReuseHTTPServer(HTTPServer):
     
     def server_bind(self):
