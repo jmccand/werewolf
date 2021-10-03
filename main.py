@@ -1087,20 +1087,29 @@ setTimeout(refreshPage, 1000);
 
 function vote(element) {
     if (!(element.id == 'Center1' || element.id == 'Center2' || element.id == 'Center3')) {
-        if (myVote != null) {
+        if (element == myVote) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/vote?id=%s&for=-1", true);
+            xhttp.send();
             myVote.style.border = '0px solid red';
+            myVote = null;
         }
-        var xhttp = new XMLHttpRequest();
-        xhttp.open("GET", "/vote?id=%s&for=" + element.id, true);
-        xhttp.send();
-        element.style.border = '4px solid red';
-        myVote = element;
+        else {
+            if (myVote != null) {
+                myVote.style.border = '0px solid red';
+            }
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/vote?id=%s&for=" + element.id, true);
+            xhttp.send();
+            element.style.border = '4px solid red';
+            myVote = element;
+        }
     }
 }
 </script>
 </body>
 </html>
-'''  % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID, myID, myID)).encode('utf8'))
+'''  % ([list(tuplepair) for tuplepair in myGame.position_username_role], my_index, myID, myID, myID, myID, myID)).encode('utf8'))
 
     def start_night(self):
         myID = self.get_game_id()
@@ -1185,7 +1194,11 @@ function vote(element) {
         if 'for' in arguments:
             for index, values in enumerate(myGame.position_username_role[:-3]):
                 if values[0] == username:
-                    myGame.votes[index] = arguments['for'][0]
+                    if arguments['for'][0] == '-1':
+                        print(f'reseting {username}s vote to None')
+                        myGame.votes[index] = None
+                    else:
+                        myGame.votes[index] = arguments['for'][0]
             self.send_response(200)
             self.end_headers()
 
